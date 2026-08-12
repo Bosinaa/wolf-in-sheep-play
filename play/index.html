@@ -156,6 +156,33 @@ body.thunk #game{animation:thunk .42s}
 @keyframes blinkEye{0%,93%,100%{transform:scaleY(1)}95.5%{transform:scaleY(.06)}}
 .menu .menu-box{position:relative;z-index:2}
 
+/* ---- пошаговые экраны: правила и вступление ----
+   Списком они не влезали ни в один экран, поэтому теперь показываются
+   по одному-двум пунктам, а кнопки всегда на месте. */
+.reader.steps,.story-box{max-height:calc(100vh - 40px);display:flex;flex-direction:column}
+.step-count{font-family:var(--type);font-size:12px;letter-spacing:2.4px;text-transform:uppercase;
+  color:#8a7c68;margin-bottom:10px}
+.step-text{font-family:var(--type);font-size:clamp(17px,2.1vw,21px);line-height:1.65;margin:6px 0 0;
+  overflow:auto;flex:1 1 auto;min-height:0}
+.step-dots{display:flex;gap:7px;justify-content:center;margin:20px 0 4px;flex:0 0 auto}
+.step-dots .dot{width:9px;height:9px;border-radius:50%;border:1px solid #a8967a;background:transparent;padding:0}
+.step-dots .dot.on{background:var(--thread);border-color:var(--thread)}
+.step-dots button.dot{cursor:pointer}
+.step-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;flex:0 0 auto}
+.step-row .btn{min-width:0;flex:1 1 auto}
+
+/* аккордеон протокола: заголовки видны всегда, текст раскрывается */
+.acc{flex:1 1 auto;min-height:0;overflow:auto;margin:4px 0 2px}
+.acc-item{border-bottom:1px dashed #b3a58c}
+.acc-item summary{cursor:pointer;padding:11px 4px;font-family:var(--serif);font-size:14.5px;
+  letter-spacing:.4px;color:#3e372e;list-style:none;display:flex;align-items:center;gap:8px}
+.acc-item summary::-webkit-details-marker{display:none}
+.acc-item summary::before{content:"+";width:18px;height:18px;flex:0 0 auto;display:grid;place-items:center;
+  border:1px solid var(--thread);color:var(--thread);font-family:var(--ui);font-size:13px;line-height:1}
+.acc-item[open] summary::before{content:"–"}
+.acc-item summary:hover{color:var(--thread)}
+.acc-body{font-family:var(--type);font-size:15px;line-height:1.6;color:#4b4238;padding:0 4px 12px 30px}
+
 /* ================= читалка / история ================= */
 .doc-screen,.story{overflow:auto;padding:26px 16px}
 .reader,.story-box{max-width:760px;width:100%;margin:auto;
@@ -260,8 +287,9 @@ body.thunk #game{animation:thunk .42s}
   transform:scale(1.2);transform-origin:50% 18%;filter:contrast(1.04) saturate(.96)}
 .polaroid{overflow:hidden}
 /* окно видеозвонка: кадр интервью крупно, как в записи созвона */
-.vcall{position:relative;margin:0 0 10px;border:1px solid #c3b498;background:#e9e1d2;overflow:hidden}
-.vcall .shot{display:block;width:100%;height:clamp(150px,25vh,250px);object-fit:cover;object-position:50% 12%;
+.vcall{position:relative;margin:0 auto 10px;border:1px solid #c3b498;background:#e9e1d2;overflow:hidden;
+  width:min(100%,380px)}
+.vcall .shot{display:block;width:100%;height:clamp(190px,27vh,290px);object-fit:cover;object-position:50% 22%;
   filter:contrast(1.03) saturate(.97)}
 .vcall .vc-rec{position:absolute;top:7px;left:8px;font-family:var(--ui);font-size:9.5px;letter-spacing:1.4px;
   color:#fff;background:rgba(184,51,44,.9);padding:3px 7px;border-radius:2px;animation:rec 1.8s infinite}
@@ -389,6 +417,10 @@ body.thunk #game{animation:thunk .42s}
 .mb-tries{font-family:var(--type);font-size:12.5px;color:var(--dim);letter-spacing:.6px;white-space:nowrap}
 .mb-tries b{color:var(--brass);font-size:16px}
 .mb-tries.low b{color:var(--thread);animation:rec 1s infinite}
+.check-btn{background:linear-gradient(#3a4a3d,#2a332b);border-color:#4c5e4f;white-space:nowrap}
+.check-btn.ready{background:linear-gradient(#c1231d,#7d120f);border-color:#5d0d0b;color:#fff;
+  box-shadow:0 2px 0 #4a0a08,0 0 14px rgba(193,31,26,.35)}
+.check-btn:disabled{opacity:.45}
 
 /* отметка: красная рамка «от руки» поверх строки */
 .markable{cursor:pointer}
@@ -443,9 +475,13 @@ body.thunk #game{animation:thunk .42s}
 /* ---------- оверлей ---------- */
 .overlay{position:fixed;inset:0;z-index:96;background:rgba(6,9,6,.78);display:flex;align-items:center;justify-content:center;padding:20px;
   animation:fade .2s forwards;backdrop-filter:blur(2px)}
-.overlay-card{max-width:620px;width:100%;max-height:82vh;overflow:auto;
+.overlay-card{max-width:620px;width:100%;max-height:min(86vh,760px);
+  display:flex;flex-direction:column;overflow:hidden;
   background:linear-gradient(178deg,var(--paper),var(--paper2));color:var(--ink);font-family:var(--type);
-  padding:28px 28px 24px;box-shadow:0 26px 60px rgba(0,0,0,.6)}
+  padding:22px 24px 20px;box-shadow:0 26px 60px rgba(0,0,0,.6)}
+.overlay-card>h3{flex:0 0 auto}
+.overlay-card>.btn{flex:0 0 auto;margin-top:14px}
+.overlay-card>.reader-list,.overlay-card>p{overflow:auto;min-height:0}
 .overlay-card h3{font-family:var(--serif);text-transform:uppercase;letter-spacing:2px;font-size:18px;margin:0 0 16px;
   border-bottom:2px solid var(--ink);padding-bottom:8px}
 .overlay-card p{font-size:17px;line-height:1.65}
@@ -453,9 +489,13 @@ body.thunk #game{animation:thunk .42s}
 
 /* ================= ВЕРДИКТ ================= */
 .verdict{overflow:auto;padding:22px 16px}
-.verdict-box{position:relative;max-width:760px;width:100%;margin:auto;
+.verdict-box{position:relative;max-width:760px;width:100%;margin:auto;max-height:calc(100vh - 34px);
+  display:flex;flex-direction:column;
   background:linear-gradient(178deg,var(--paper),var(--paper2));color:var(--ink);font-family:var(--type);
-  padding:24px 26px 22px;box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.4)}
+  padding:22px 26px 18px;box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.4)}
+.verdict-box>.v-top,.verdict-box>.btn{flex:0 0 auto}
+/* разбор бывает длинным — листается внутри, кнопка «Далее» остаётся на виду */
+.verdict-scroll{flex:1 1 auto;min-height:0;overflow:auto;padding-right:4px}
 .verdict-box::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:var(--grain);background-size:160px}
 .v-top{display:flex;gap:16px;align-items:flex-start;position:relative;padding-bottom:14px;border-bottom:2px solid #c3b498}
 .v-photo{flex:0 0 112px;width:112px}
@@ -497,7 +537,7 @@ body.thunk #game{animation:thunk .42s}
 .grade.g-A .g-v{color:#3f7a4a}.grade.g-B .g-v{color:#6b7a3f}
 .grade.g-C .g-v{color:#98722c}.grade.g-D .g-v{color:#a8562c}.grade.g-F .g-v{color:var(--thread)}
 .gs.g-A{color:#3f7a4a;border-color:#3f7a4a}.gs.g-F{color:var(--thread);border-color:var(--thread)}
-.verdict-box .btn{margin-top:20px;display:block}
+.verdict-box .btn{margin-top:14px;display:block;position:sticky;bottom:0}
 
 /* ================= джампскейр ================= */
 .jumpscare{position:fixed;inset:0;z-index:99;background:#0a0806;display:flex;flex-direction:column;
@@ -596,7 +636,8 @@ body.thunk #game{animation:thunk .42s}
   .bubble{padding:8px 11px;font-size:15px}
   .feed{gap:7px}
   .vcall{margin-bottom:8px}
-  .vcall .shot{height:clamp(130px,20vh,190px)}
+  .vcall{width:min(100%,330px)}
+  .vcall .shot{height:clamp(160px,22vh,220px)}
   .findings{padding:8px 11px}
   .big{padding:13px 20px;font-size:16px}
 }
@@ -631,7 +672,8 @@ body.thunk #game{animation:thunk .42s}
   .cand-name{font-size:17px}
   .doc-row{font-size:14px;padding:5px 4px}
   .bubble{font-size:14px}
-  .vcall .shot{height:clamp(112px,17vh,160px)}
+  .vcall{width:min(100%,300px)}
+  .vcall .shot{height:clamp(140px,19vh,180px)}
   .big{padding:11px 16px;font-size:15px}
 }
 
@@ -713,7 +755,11 @@ window.GAME_DATA = {
     probeTitle: "ПРОВЕРКИ (тратят дневной лимит)", probeAnswer: "ОТВЕТ",
     probeTab: "ПРОВЕРКА", interviewTab: "ИНТЕРВЬЮ", youWord: "ВАШ ВОПРОС",
     triesWord: "сверок", triesLeftWord: "Осталось сверок:", markedWord: "отмечено",
-    markHint: "Нажимай на строки документов и реплики, которые не сходятся между собой. Отмеченное обводится красным; как только отмечено две строки, они сверяются.",
+    markHint: "Обводи красным всё подозрительное — это твои пометки. Чтобы доказать нестыковку, оставь ровно две строки и нажми «Сверить».",
+    checkLabel: "СВЕРИТЬ ОТМЕЧЕННОЕ",
+    needTwo: "Отметь две строки, которые, по-твоему, противоречат друг другу.",
+    tooMany: "Для сверки нужно ровно две отметки — сними лишние.",
+    stepWord: "ШАГ", ofWord: "из",
     markThis: "отметить",
     findingsTitle: "ПОДТВЕРЖДЁННЫЕ НЕСТЫКОВКИ", findingsEmpty: "Пока ни одной нестыковки не подтверждено.",
     emptyDoc: "Пусто. Похоже, тут нужна проверка.",
@@ -721,7 +767,7 @@ window.GAME_DATA = {
     alreadyPair: "Эта строка уже вошла в подтверждённую нестыковку.",
     pairHold: "Сходится: эти два факта друг другу противоречат.",
     pairSnap: "Здесь расхождения нет: эти строки друг другу не противоречат.",
-    triesOut: "Сверки закончились. Дальше — только твоё решение.",
+    triesOut: "Сверки на этого кандидата закончились. Дальше — только твоё решение.",
     noProofTitle: "ОТКАЗАТЬ БЕЗ ОСНОВАНИЙ?",
     noProofText: "Ни одной нестыковки не подтверждено. Отказ без основания кандидат вправе оспорить — и если он честен, будет жалоба на предвзятость.",
     backWord: "ВЕРНУТЬСЯ К ДОКУМЕНТАМ", anywayWord: "ВСЁ РАВНО ОТКАЗАТЬ",
@@ -743,9 +789,9 @@ window.GAME_DATA = {
 
   howto: [
     "Открой все вкладки папки: резюме, образование, портфолио, рекомендации, справки. Дослушай запись интервью до конца.",
-    "Нажми на строку документа или на реплику кандидата — она обведётся красным. Отмечать нужно ровно две: те, что противоречат друг другу.",
-    "Как только отмечены две строки, они сверяются. Если факты действительно расходятся — обе остаются обведёнными с пометкой «не сходится», а нестыковка попадает в подтверждённые.",
-    "Если расхождения нет, сверка сгорает: их четыре на кандидата. Дальше решаешь по своему усмотрению.",
+    "Нажми на строку документа или на реплику кандидата — она обведётся красным. Обводить можно всё, что кажется подозрительным: это твои пометки, они ничего не стоят.",
+    "Чтобы доказать нестыковку, оставь отмеченными ровно две строки и нажми «Сверить отмеченное». Если факты действительно расходятся — они получат пометку «не сходится» и попадут в подтверждённые.",
+    "Если расхождения нет, сгорает одна сверка: их четыре на кандидата. Отметки при этом остаются — обычно достаточно заменить одну строку в паре.",
     "Строки живут по всей папке: можно отметить одну во вкладке «Резюме», перейти в «Выписку ЕГРЮЛ» и отметить вторую — отметка не сбрасывается.",
     "ПРОВЕРКИ (звонок рекомендателю, ЕГРЮЛ, реестр сертификатов, авторство файлов) открывают то, чего нет в папке, но лимит общий на день — трать на тех, в кого сомневаешься.",
     "«ПРИГЛАСИТЬ НА СОБЕСЕДОВАНИЕ» — если человек честен. «ОТКАЗАТЬ · НАКРУТКА В РЕЗЮМЕ» — если в резюме приписано, и лучше с подтверждённой нестыковкой.",
@@ -761,7 +807,7 @@ window.GAME_DATA = {
     "5. ГРЕЙД РАВЕН ОТВЕТАМ. Заявлен senior/lead, но плывёт на базовом вопросе по своему же стеку — накрутка.",
     "6. АВТОРСТВО ПРОВЕРЯЕМО. Реестры сертификатов, метаданные файлов, история коммитов, список авторов статьи, издатель приложения в сторе — всё это имеет имя. Оно должно быть его.",
     "7. РЕКОМЕНДАТЕЛЬ — ТОЖЕ ДОКУМЕНТ. Телефон рекомендателя, совпавший с телефоном кандидата, домен почты, зарегистрированный на прошлой неделе, «коллега», не помнящий проекта — это нестыковка.",
-    "8. НЕ УЛИКА: пробел в стаже, декрет, выгорание, отсутствие диплома, смена профессии, отказ дать рекомендации с текущей работы, NDA-проекты без публичного кода, неровный английский, дешёвые зарплатные ожидания.",
+    "8. НЕ ПОВОД ДЛЯ ОТКАЗА: пробел в стаже, декрет, выгорание, отсутствие диплома, смена профессии, отказ дать рекомендации с текущей работы, NDA-проекты без публичного кода, неровный английский, дешёвые зарплатные ожидания.",
     "9. ГЛАДКОСТЬ НЕ РАВНА ЧЕСТНОСТИ, А СТРАННОСТЬ НЕ РАВНА ЛЖИ. У честных бывают совпадения, которые выглядят как ложь: девичья фамилия в дипломе, переименованный вуз, слитая компания, отпуск в чужом часовом поясе. Такие вещи проверяются звонком и реестром, а не красным карандашом."
   ],
 
@@ -3530,29 +3576,85 @@ window.GAME_DATA.cases.push(
     root.append(sc);
   }
 
+  /* Правила показываем по одному шагу: списком из восьми пунктов они не
+     влезали ни в один экран, и кнопка «Назад» уезжала за край. */
   function renderHowTo() {
-    root.innerHTML = ""; ensureFX();
-    const sc = el("div", "screen doc-screen");
-    const box = el("div", "reader");
-    box.append(el("h2", "reader-h", "КАК ИГРАТЬ"));
-    const ul = el("ul", "reader-list"); (G.howto || []).forEach((s) => ul.append(el("li", null, esc(s)))); box.append(ul);
-    if (G.protocol) {
-      box.append(el("h2", "reader-h", esc(G.protocolTitle || "ПРОТОКОЛ")));
-      const pl = el("ol", "reader-list"); G.protocol.forEach((s) => pl.append(el("li", null, esc(s)))); box.append(pl);
+    const steps = (G.howto || []).slice();
+    let i = 0;
+    function draw() {
+      root.innerHTML = ""; ensureFX();
+      const sc = el("div", "screen doc-screen");
+      const box = el("div", "reader steps");
+      box.append(el("div", "step-count", `${esc(L("stepWord", "ШАГ"))} ${i + 1} ${esc(L("ofWord", "из"))} ${steps.length}`));
+      box.append(el("h2", "reader-h", "КАК ИГРАТЬ"));
+      box.append(el("p", "step-text", esc(steps[i] || "")));
+      const dots = el("div", "step-dots");
+      steps.forEach((_, n) => {
+        const d = el("button", "dot" + (n === i ? " on" : ""));
+        d.title = String(n + 1);
+        d.onclick = () => { Snd.click(); i = n; draw(); };
+        dots.append(d);
+      });
+      box.append(dots);
+      const row = el("div", "step-row");
+      const back = el("button", "btn btn-ghost", i === 0 ? "В МЕНЮ" : "НАЗАД");
+      back.onclick = () => { Snd.click(); if (i === 0) return renderMenu(); i--; draw(); };
+      row.append(back);
+      if (i < steps.length - 1) {
+        const next = el("button", "btn btn-accent", "ДАЛЬШЕ →");
+        next.onclick = () => { Snd.click(); i++; draw(); };
+        row.append(next);
+      } else {
+        const proto = el("button", "btn btn-accent", "📋 " + esc(G.protocolTitle || "ПРОТОКОЛ"));
+        proto.onclick = () => { Snd.click(); showProtocol(); };
+        row.append(proto);
+        const done = el("button", "btn", "В МЕНЮ");
+        done.onclick = () => { Snd.click(); renderMenu(); };
+        row.append(done);
+      }
+      box.append(row);
+      sc.append(box); root.append(sc);
     }
-    const back = el("button", "btn", "НАЗАД"); back.onclick = () => { Snd.click(); renderMenu(); }; box.append(back);
-    sc.append(box); root.append(sc);
+    draw();
   }
 
+  /* Вступление — семь абзацев, целиком не влезали. Показываем по два,
+     с возможностью пропустить. */
   function renderIntro() {
-    root.innerHTML = ""; ensureFX();
-    const sc = el("div", "screen story");
-    const box = el("div", "story-box");
-    (G.intro || []).forEach((line) => box.append(el("p", "story-line", esc(line))));
-    const btn = el("button", "btn btn-accent", (L("startShiftLabel", "НАЧАТЬ СМЕНУ")) + " →");
-    btn.onclick = () => { Snd.click(); startDay(); };
-    box.append(btn); sc.append(box); root.append(sc);
-    sc.querySelectorAll(".story-line").forEach((l, i) => { l.style.animationDelay = i * 0.42 + "s"; });
+    const lines = (G.intro || []).slice();
+    const per = 2, pages = Math.max(1, Math.ceil(lines.length / per));
+    let p = 0;
+    function draw() {
+      root.innerHTML = ""; ensureFX();
+      const sc = el("div", "screen story");
+      const box = el("div", "story-box");
+      lines.slice(p * per, p * per + per).forEach((line, n) => {
+        const el2 = el("p", "story-line show", esc(line));
+        el2.style.animation = "fade .5s " + (n * 0.12) + "s both";
+        box.append(el2);
+      });
+      const dots = el("div", "step-dots");
+      for (let n = 0; n < pages; n++) dots.append(el("i", "dot" + (n === p ? " on" : "")));
+      box.append(dots);
+      const row = el("div", "step-row");
+      if (p > 0) {
+        const back = el("button", "btn btn-ghost", "НАЗАД");
+        back.onclick = () => { Snd.click(); p--; draw(); };
+        row.append(back);
+      }
+      const last = p >= pages - 1;
+      const next = el("button", "btn btn-accent", last ? (L("startShiftLabel", "НАЧАТЬ СМЕНУ")) + " →" : "ДАЛЬШЕ →");
+      next.onclick = () => { Snd.click(); if (last) return startDay(); p++; draw(); };
+      row.append(next);
+      if (!last) {
+        const skip = el("button", "btn btn-ghost", "ПРОПУСТИТЬ");
+        skip.onclick = () => { Snd.click(); startDay(); };
+        row.append(skip);
+      }
+      box.append(row);
+      sc.append(box); root.append(sc);
+    }
+    draw();
   }
 
   const currentDay = () => (G.days || [])[state.dayIndex];
@@ -3650,9 +3752,15 @@ window.GAME_DATA.cases.push(
 
     // подсказка + счётчик сверок
     const bar = el("div", "markbar");
-    bar.innerHTML = `<span class="mb-hint">${esc(L("markHint", "Нажимай на строки, которые не сходятся между собой — они обведутся красным."))}</span>` +
-      `<span class="mb-right"><span class="mb-count">${esc(L("markedWord", "отмечено"))}: <b>0</b>/2</span>` +
+    bar.innerHTML = `<span class="mb-hint">${esc(L("markHint", "Обводи красным всё, что кажется подозрительным."))}</span>` +
+      `<span class="mb-right"><span class="mb-count">${esc(L("markedWord", "отмечено"))}: <b>0</b></span>` +
       `<span class="mb-tries"><b>${triesLeft}</b> ${esc(L("triesWord", "сверок"))}</span></span>`;
+    // сверка — отдельное осознанное действие: отмечать можно сколько угодно,
+    // а сверяются ровно две выбранные строки
+    const checkBtn = el("button", "btn btn-sm check-btn", esc(L("checkLabel", "СВЕРИТЬ ОТМЕЧЕННОЕ")));
+    checkBtn.disabled = true;
+    checkBtn.onclick = () => { Snd.click(); checkPair(); };
+    bar.querySelector(".mb-right").append(checkBtn);
     dossier.append(bar);
 
     // вкладки документов
@@ -3787,6 +3895,11 @@ window.GAME_DATA.cases.push(
     function repaintMarks() {
       const cnt = bar.querySelector(".mb-count b");
       if (cnt) cnt.textContent = marked.length;
+      const cb = bar.querySelector(".check-btn");
+      if (cb) {
+        cb.disabled = marked.length !== 2 || triesLeft <= 0 || decided;
+        cb.classList.toggle("ready", marked.length === 2 && triesLeft > 0);
+      }
       // строки живут по id, а не по DOM: отметка сохраняется при смене вкладки
       root.querySelectorAll("[data-id]").forEach((n) => {
         const id = n.dataset.id;
@@ -3805,12 +3918,17 @@ window.GAME_DATA.cases.push(
       const at = marked.indexOf(id);
       if (at >= 0) { marked.splice(at, 1); Snd.unpin(); repaintMarks(); return; }
       marked.push(id); Snd.pin(); repaintMarks();
-      if (marked.length === 2) setTimeout(checkPair, 260);
     }
 
     function checkPair() {
+      if (marked.length !== 2) {
+        toast(marked.length < 2
+          ? L("needTwo", "Отметь две строки, которые, по-твоему, противоречат друг другу.")
+          : L("tooMany", "Для сверки нужно ровно две отметки — сними лишние."), "warn");
+        return;
+      }
+      if (triesLeft <= 0) { toast(L("triesOut", "Сверки на этого кандидата закончились."), "warn"); return; }
       const a = marked[0], b = marked[1];
-      if (!a || !b) return;
       const key = pairKey(a, b);
       if (found.has(key)) { marked.length = 0; repaintMarks(); return; }
       const hit = contraByKey[key];
@@ -3822,7 +3940,7 @@ window.GAME_DATA.cases.push(
         toast(L("pairHold", "Сходится: эти два факта друг другу противоречат."), "ok");
       } else {
         triesLeft--;
-        marked.length = 0;
+        // отметки оставляем: обычно игрок хочет поменять одну строку в паре
         Snd.snap(); flash("bad");
         [a, b].forEach((id) => {
           const n = root.querySelector('[data-id="' + cssEsc(id) + '"]');
@@ -3908,6 +4026,7 @@ window.GAME_DATA.cases.push(
       ready: () => !accept.disabled,
       mark: (fid) => toggleMark(fid),
       check: (a, b) => { marked.length = 0; repaintMarks(); toggleMark(a); toggleMark(b); checkPair(); },
+      marksLeft: () => marked.slice(),
       probeAll: () => dossier.querySelectorAll(".probe-btn:not(.used)").forEach((b) => b.click()),
       marked: () => marked.slice(),
       hidden: () => Object.keys(reg).filter((k) => reg[k].secret && !revealed.has(k)),
@@ -3933,11 +4052,24 @@ window.GAME_DATA.cases.push(
     (root.querySelector(".screen") || root).append(ov);
     return { ov, card };
   }
+  /* Протокол — девять длинных пунктов. Показываем свёрнутыми: заголовок
+     пункта виден всегда, текст раскрывается по клику. */
   function showProtocol() {
     const { ov, card } = overlayShell("proto");
     card.append(el("h3", null, esc(G.protocolTitle || "ПРОТОКОЛ")));
-    const ol = el("ol", "reader-list"); (G.protocol || []).forEach((s) => ol.append(el("li", null, esc(s)))); card.append(ol);
-    const close = el("button", "btn", "ЗАКРЫТЬ"); close.onclick = () => { Snd.click(); ov.remove(); }; card.append(close);
+    const list = el("div", "acc");
+    (G.protocol || []).forEach((line) => {
+      const m = String(line).match(/^(\s*\d+\.\s*[^.:]+[.:])\s*([\s\S]*)$/);
+      const head = m ? m[1].trim() : String(line).slice(0, 40) + "…";
+      const body = m ? m[2].trim() : String(line);
+      const d = el("details", "acc-item");
+      d.innerHTML = `<summary>${esc(head)}</summary><div class="acc-body">${esc(body)}</div>`;
+      list.append(d);
+    });
+    card.append(list);
+    const close = el("button", "btn btn-accent", "ЗАКРЫТЬ");
+    close.onclick = () => { Snd.click(); ov.remove(); };
+    card.append(close);
   }
   function confirmOverlay(title, text, onYes) {
     if ($(".overlay")) return;            // не стакать оверлеи на повторных кликах
@@ -4030,8 +4162,11 @@ window.GAME_DATA.cases.push(
     top.append(stamp);
     box.append(top);
 
+    // всё, кроме шапки и кнопки, живёт в прокручиваемой области
+    const scroll = el("div", "verdict-scroll");
+    box.append(scroll);
     let msg = correct ? (c.feedbackCorrect || G.defaultCorrect) : (c.feedbackWrong || G.defaultWrong);
-    if (msg) box.append(el("p", "verdict-msg", esc(msg)));
+    if (msg) scroll.append(el("p", "verdict-msg", esc(msg)));
 
     // разбор: все противоречия кейса — найденные и пропущенные
     if (info.provable > 0) {
@@ -4049,22 +4184,22 @@ window.GAME_DATA.cases.push(
         ul.append(liEl);
       });
       wrap.append(ul);
-      wrap.append(el("div", "accuracy", `${esc(L("provedWord", "Доказано"))}: <b>${info.found}/${info.provable}</b>` +
+      wrap.append(el("div", "accuracy", `${esc(L("provedWord", "Подтверждено"))}: <b>${info.found}/${info.provable}</b>` +
         (info.wasted ? ` · <span class="miss">${esc(L("wastedWord", "порвано нитей"))}: ${info.wasted}</span>` : "") +
         (info.found === info.provable ? ` · <span class="hit">${esc(L("cleanWord", "дело собрано чисто"))}</span>` : "")));
-      box.append(wrap);
+      scroll.append(wrap);
     } else if (c.herrings && c.herrings.length) {
       const wrap = el("div", "tells calm");
       wrap.append(el("div", "tells-head", esc(L("herringTitle", "ЧТО ВЫГЛЯДЕЛО ПОДОЗРИТЕЛЬНО, НО БЫЛО В НОРМЕ:"))));
       const ul = el("ul", "reader-list"); c.herrings.forEach((x) => ul.append(el("li", null, esc(x))));
       wrap.append(ul);
-      if (info.wasted) wrap.append(el("div", "accuracy", `<span class="miss">${esc(L("wastedWord", "порвано нитей"))}: ${info.wasted} — здесь противоречий не было.</span>`));
-      box.append(wrap);
+      if (info.wasted) wrap.append(el("div", "accuracy", `<span class="miss">${esc(L("wastedWord", "неверных сверок"))}: ${info.wasted} — здесь расхождений не было.</span>`));
+      scroll.append(wrap);
     }
 
-    const gr = el("div", "grade g-" + grade, `<span class="g-l">${esc(L("gradeWord", "ОЦЕНКА КЕЙСА"))}</span><span class="g-v">${grade}</span>`);
-    box.append(gr);
-    if (correct && state.combo >= 3) box.append(el("div", "combo-note", `серия ×${state.combo} — ты в ритме`));
+    const gr0 = el("div", "grade g-" + grade, `<span class="g-l">${esc(L("gradeWord", "ОЦЕНКА КЕЙСА"))}</span><span class="g-v">${grade}</span>`);
+    scroll.append(gr0);
+    if (correct && state.combo >= 3) scroll.append(el("div", "combo-note", `серия ×${state.combo} — ты в ритме`));
 
     const btn = el("button", "btn btn-accent", "ДАЛЕЕ →");
     btn.onclick = () => {
