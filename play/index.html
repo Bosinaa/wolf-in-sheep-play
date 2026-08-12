@@ -276,6 +276,12 @@ body.thunk #game{animation:thunk .42s}
 
 /* ---------- карточка кандидата ---------- */
 .id-card{display:flex;gap:14px;align-items:flex-start;transform:rotate(-.5deg)}
+/* когда кадр интервью показан в окне созвона, в папке фото не дублируем:
+   информации оно не добавляет, а место занимает */
+.id-card.no-photo{gap:0}
+.cand-role{font-family:var(--type);font-size:13px;letter-spacing:.3px;color:#8a7c68;
+  text-transform:none;white-space:nowrap}
+.id-card.no-photo .meta-grid{grid-template-columns:auto 1fr auto 1fr;gap:5px 14px}
 .polaroid{position:relative;flex:0 0 128px;width:128px;background:#fbf7ee;padding:7px 7px 24px;
   box-shadow:0 8px 18px rgba(0,0,0,.4);transform:rotate(1.4deg)}
 .polaroid::before{content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%) rotate(-3deg);
@@ -376,6 +382,27 @@ body.thunk #game{animation:thunk .42s}
   background:rgba(63,111,143,.12);border-left:3px solid var(--accent2);color:#3a332a;
   display:flex;flex-direction:column;gap:6px;align-items:flex-start;animation:freshIn .6s}
 .probe-result b{letter-spacing:1px;font-size:12px;color:var(--accent2)}
+
+/* ---------- вопросы кандидату ---------- */
+.asks{transform:rotate(-.3deg);max-height:clamp(140px,26vh,230px);overflow:auto;
+  background-image:linear-gradient(178deg,var(--paper),var(--paper2)),
+    linear-gradient(to top,rgba(180,160,120,.32),transparent 24px);
+  background-repeat:no-repeat;background-size:100% 100%,100% 100%;background-attachment:local,scroll}
+.asks-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  font-family:var(--serif);font-size:12.5px;letter-spacing:1.8px;text-transform:uppercase;
+  color:#4b4238;border-bottom:2px solid #c3b498;padding-bottom:6px;margin-bottom:8px}
+.asks-left{font-family:var(--type);font-size:11.5px;letter-spacing:.6px;color:#8a7c68;text-transform:none}
+.asks-left b{color:var(--thread);font-size:15px}
+.ask-list{display:flex;flex-direction:column;gap:6px}
+.ask-btn{display:flex;align-items:baseline;justify-content:space-between;gap:10px;text-align:left;
+  font-family:var(--type);font-size:14px;line-height:1.4;padding:9px 11px;border:1px solid #a8967a;
+  background:rgba(255,255,255,.42);color:var(--ink);border-radius:2px;transition:border-color .15s,background .15s}
+.ask-btn:hover:not(.used):not(.off){border-color:var(--thread);background:rgba(193,31,26,.08)}
+.ask-tag{font-family:var(--ui);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#8a7c68;
+  border:1px solid #bfae90;padding:2px 5px;border-radius:2px;white-space:nowrap;flex:0 0 auto}
+.ask-btn.used{opacity:.5;cursor:default;border-style:dashed}
+.ask-btn.used .ask-tag{border-color:var(--ok);color:var(--ok)}
+.ask-btn.off{opacity:.32;cursor:not-allowed}
 
 /* ---------- интервью ---------- */
 .talk-paper{display:flex;flex-direction:column;min-height:0;flex:1}
@@ -520,7 +547,11 @@ body.thunk #game{animation:thunk .42s}
 .clue{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;font-size:15px;line-height:1.55;
   border-left:3px solid #c3b498;padding:6px 0 6px 9px}
 .clue.hit{border-left-color:var(--ok)}
-.clue.miss{border-left-color:var(--thread);background:rgba(184,51,44,.07)}
+.clue.miss{border-left-color:var(--thread);background:rgba(193,31,26,.07)}
+/* пара, которую нельзя было вскрыть при израсходованных лимитах — не ошибка игрока */
+.clue.locked{border-left-color:#8a7c68;background:rgba(138,124,104,.09);opacity:.9}
+.clue.locked .clue-mark{color:#8a7c68;font-size:13px}
+.locked-note{color:#6b6053}
 .clue-mark{font-size:17px;grid-row:span 2}
 .clue.hit .clue-mark{color:var(--ok)}
 .clue.miss .clue-mark{color:var(--thread)}
@@ -632,6 +663,8 @@ body.thunk #game{animation:thunk .42s}
   .doc-pane{padding:10px 12px 11px;min-height:0}
   .paper{padding:11px 12px 10px}
   .probe-btn{padding:8px 10px;font-size:13px}
+  .asks{max-height:clamp(120px,22vh,190px)}
+  .ask-btn{padding:7px 9px;font-size:13px}
   .probe-result{padding:8px 10px;font-size:13px}
   .bubble{padding:8px 11px;font-size:15px}
   .feed{gap:7px}
@@ -728,6 +761,7 @@ window.GAME_DATA = {
   /* ---- геймплей ---- */
   checkTries: 4,        // попыток сверить пару за кейс (неудачная сверка сгорает)
   probeBudget: 3,       // проверок в день по умолчанию (день может переопределить)
+  askLimit: 2,          // сколько вопросов можно задать одному кандидату
 
   meters: {
     wolves: { label: "ВОЛКИ ВНУТРИ", icon: "◆", max: 3 },
@@ -757,6 +791,9 @@ window.GAME_DATA = {
     triesWord: "сверок", triesLeftWord: "Осталось сверок:", markedWord: "отмечено",
     markHint: "Обводи красным всё подозрительное — это твои пометки. Чтобы доказать нестыковку, оставь ровно две строки и нажми «Сверить».",
     checkLabel: "СВЕРИТЬ ОТМЕЧЕННОЕ",
+    askTitle: "СПРОСИТЬ КАНДИДАТА", askLeftWord: "осталось вопросов",
+    askTab: "ОТВЕТ НА ВОПРОС",
+    noAsks: "Вопросы на этого кандидата закончились — дальше только документы и проверки.",
     needTwo: "Отметь две строки, которые, по-твоему, противоречат друг другу.",
     tooMany: "Для сверки нужно ровно две отметки — сними лишние.",
     stepWord: "ШАГ", ofWord: "из",
@@ -773,6 +810,7 @@ window.GAME_DATA = {
     backWord: "ВЕРНУТЬСЯ К ДОКУМЕНТАМ", anywayWord: "ВСЁ РАВНО ОТКАЗАТЬ",
     blindWord: "без основания",
     provedWord: "Подтверждено", wastedWord: "неверных сверок", cleanWord: "проверено чисто",
+    lockedWord: "ещё", lockedTail: "открывались вопросом или проверкой",
     herringTitle: "ЧТО НАСТОРАЖИВАЛО, НО ОКАЗАЛОСЬ НОРМОЙ",
     gradeWord: "КАЧЕСТВО ПРОВЕРКИ", resultWord: "Итог", bestComboWord: "лучшая серия", rankWord: "РАНГ"
   },
@@ -793,6 +831,7 @@ window.GAME_DATA = {
     "Чтобы доказать нестыковку, оставь отмеченными ровно две строки и нажми «Сверить отмеченное». Если факты действительно расходятся — они получат пометку «не сходится» и попадут в подтверждённые.",
     "Если расхождения нет, сгорает одна сверка: их четыре на кандидата. Отметки при этом остаются — обычно достаточно заменить одну строку в паре.",
     "Строки живут по всей папке: можно отметить одну во вкладке «Резюме», перейти в «Выписку ЕГРЮЛ» и отметить вторую — отметка не сбрасывается.",
+    "СПРОСИТЬ КАНДИДАТА: у каждого есть несколько вопросов на выбор, но задать можно только два. Ответ попадает в запись интервью — его тоже можно обвести и сверить с документом.",
     "ПРОВЕРКИ (звонок рекомендателю, ЕГРЮЛ, реестр сертификатов, авторство файлов) открывают то, чего нет в папке, но лимит общий на день — трать на тех, в кого сомневаешься.",
     "«ПРИГЛАСИТЬ НА СОБЕСЕДОВАНИЕ» — если человек честен. «ОТКАЗАТЬ · НАКРУТКА В РЕЗЮМЕ» — если в резюме приписано, и лучше с подтверждённой нестыковкой.",
     "Отказать можно и без основания, но если кандидат окажется честным — это жалоба на предвзятость. Две шкалы: пропущенные накрутчики и жалобы. Любая из них доводит до увольнения."
@@ -940,6 +979,16 @@ window.GAME_DATA.cases.push(
     { who: "you", text: "Что было самым сложным на фрилансе?" },
     { who: "caller", text: "Говорить «нет». Заказчик просил ещё правку, а я боялась отказать и сидела ночами. Сейчас пишу оценку сроков заранее.", id: "iv.honest" }
   ],
+  questions: [
+    { id: "ask.team", tag: "опыт", q: "Как вы работаете, когда задачу ставят нечётко?",
+      a: "Переспрашиваю до конца. На лендингах пару раз сделала «как поняла» — потом переделывала за свой счёт, больше так не хочу." },
+    { id: "ask.money", tag: "деньги", q: "Почему просите именно 90 тысяч?",
+      a: "Смотрела вакансии джунов и вычла то, чего у меня нет: командного опыта и код-ревью. Если возьмёте — через полгода буду просить больше." },
+    { id: "ask.hard", tag: "неудобный", q: "Что вы пока делать не умеете?",
+      a: "Не умею работать с чужим большим кодом и не знаю тестов. Читала про них, но в проекте не применяла." },
+    { id: "ask.plan", tag: "мотивация", q: "Почему фронтенд, а не менеджмент по диплому?",
+      a: "В колледже делала сайт для практики и впервые не смотрела на часы. Диплом менеджера мне пока пригодился один раз — договориться о сроках." }
+  ],
   audioCues: ["отвечает спокойно, без заученных формулировок", "сама сказала, что опыта в команде нет"],
   contradictions: [],
   herrings: [
@@ -988,11 +1037,24 @@ window.GAME_DATA.cases.push(
     { who: "you", text: "Кто ещё работал над бэкендом вместе с вами?" },
     { who: "caller", text: "Я один. Компания была большая, но бэкенд весь на мне, человек двести в команде.", id: "iv.solo" }
   ],
+  questions: [
+    { id: "ask.k8s", tag: "техника", q: "Как вы обновляли приложение в кластере без простоя?",
+      a: "Останавливали панель, ставили новую версию, включали обратно. Ночью же никто не пользуется, простоя фактически нет." },
+    { id: "ask.team", tag: "команда", q: "Кто ревьюил ваш код в «Тезисе»?",
+      a: "Никто, я был единственным бэкендером. Сам писал, сам проверял — так быстрее." },
+    { id: "ask.dates", tag: "даты", q: "Уточните: с какого месяца вы работали в «Тезисе»?",
+      a: "С марта девятнадцатого, помню точно — сразу после вуза туда пришёл." },
+    { id: "ask.uni", tag: "неудобный", q: "Вы учились очно и работали фултайм одновременно?",
+      a: "Да, совмещал. Пары днём, работа тоже днём — как-то успевал, руководство не возражало." }
+  ],
   audioCues: ["говорит громко, перебивает вопрос", "формулировки из резюме повторяет дословно"],
   contradictions: [
     { a: "cv.job", b: "eg.reg", note: "В резюме работа в ООО «Тезис» с марта 2019, а в ЕГРЮЛ компания зарегистрирована только 12.03.2021. Компания не может нанимать за два года до своего появления (протокол 3)." },
     { a: "cv.k8s", b: "iv.pod", note: "Заявлен продакшн с Kubernetes с 2019, но pod он называет «виртуальной машиной с Windows». Грейд не равен ответам (протокол 5)." },
-    { a: "iv.solo", b: "eg.staff", note: "На интервью — «команда двести человек», в выписке — 4–6 человек среднесписочно. Масштаб не подтверждается (протокол 4)." }
+    { a: "iv.solo", b: "eg.staff", note: "На интервью — «команда двести человек», в выписке — 4–6 человек среднесписочно. Масштаб не подтверждается (протокол 4)." },
+    { a: "ask.dates", b: "eg.reg", note: "В ответе он уточняет: работал «с марта девятнадцатого». Компания зарегистрирована 12.03.2021 (протокол 3)." },
+    { a: "ask.k8s", b: "cv.k8s", note: "Обновление «останови панель — включи обратно» не имеет отношения к продовому Kubernetes из резюме (протокол 5)." },
+    { a: "ask.uni", b: "ed.form", note: "Он подтверждает, что очные пары днём совпадали с фултаймом днём — два места одновременно (протокол 1)." }
   ],
   isImposter: true,
   feedbackCorrect: "Три нестыковки, и все три подтверждаются: даты старше компании, «продакшн-Kubernetes» без знания pod, двести человек в фирме из четырёх. Классический первый волк.",
@@ -1038,6 +1100,16 @@ window.GAME_DATA.cases.push(
     { who: "you", text: "Расскажите про самый неприятный найденный баг." },
     { who: "caller", text: "Двойное списание при повторном нажатии кнопки. Нашла случайно — рука дрогнула на тачпаде, потом воспроизвела за двадцать минут." },
     { who: "caller", text: "Про пробел: я ухаживала за отцом после операции и параллельно училась. Если это проблема, скажите сразу." }
+  ],
+  questions: [
+    { id: "ask.gap", tag: "неудобный", q: "Полгода без работы — чем занимались?",
+      a: "Отец после операции, я была с ним. Параллельно проходила курс: смотрела вечером, задания делала в больничном коридоре." },
+    { id: "ask.why", tag: "мотивация", q: "Почему ушли из бухгалтерии в тестирование?",
+      a: "Девять лет я сверяла цифры и искала расхождения. Оказалось, это ровно то же самое, только про кнопки, и мне это нравится больше." },
+    { id: "ask.tech", tag: "техника", q: "Как проверите форму оплаты, если сроки поджимают?",
+      a: "Сначала то, где деньги: суммы, повторное нажатие, отмена. Косметику оставлю на потом — от неё никто денег не потеряет." },
+    { id: "ask.ref", tag: "рекомендации", q: "Почему не даёте контакт заказчика с подряда?",
+      a: "Там NDA и я на нём ещё работаю. Могу принести свои баг-репорты без данных клиента — по ним видно, как я думаю." }
   ],
   audioCues: ["волнуется, но отвечает по сути", "сама подняла тему пробела в стаже"],
   contradictions: [],
@@ -1090,11 +1162,23 @@ window.GAME_DATA.cases.push(
     { who: "you", text: "Какие данные вы использовали — продовые или выгрузку?" },
     { who: "caller", text: "Продовые, конечно. У меня был доступ ко всем магазинам, двести точек, я их каждый день обновлял.", id: "iv.access" }
   ],
+  questions: [
+    { id: "ask.money", tag: "цифры", q: "Как именно считали экономию в 40 миллионов?",
+      a: "Взял неликвид по моим дашбордам, умножил на закупочную цену и на год. Финансисты потом это подтверждали, ну, устно." },
+    { id: "ask.summer", tag: "даты", q: "Июнь–август у вас и стажировка, и летняя школа. Как совмещали?",
+      a: "В Иннополисе была офлайн-школа с проживанием, а на стажировку я выходил в московский офис. Утром там, вечером здесь." },
+    { id: "ask.access", tag: "техника", q: "К каким данным у вас был доступ?",
+      a: "К продовым, ко всем двумстам магазинам. Логин выдали в первый день." },
+    { id: "ask.hard", tag: "неудобный", q: "Какая ваша ошибка стоила денег?",
+      a: "У меня таких не было. Я всегда всё проверял по несколько раз." }
+  ],
   audioCues: ["на цифру 40 млн переходит с готовой формулировкой", "«конечно» перед ответом про доступ"],
   contradictions: [
     { a: "cv.intern", b: "ed.school", note: "Июнь–август 2025 он одновременно на фултайм-стажировке в московском офисе и на offline-интенсиве в Иннополисе с проживанием. Два фултайма в одни даты (протокол 1)." },
     { a: "cv.intern", b: "ref.term", note: "В резюме стажировка июнь–декабрь на полный день, у руководителя стажировки — сентябрь–декабрь по 20 часов в неделю. Даты и объём растянуты (протокол 1)." },
-    { a: "iv.access", b: "ref.scope", note: "Он утверждает, что имел доступ к продовым данным всех 200 магазинов, а руководитель пишет, что стажёры работают только на демо-выгрузке (протокол 4)." }
+    { a: "iv.access", b: "ref.scope", note: "Он утверждает, что имел доступ к продовым данным всех 200 магазинов, а руководитель пишет, что стажёры работают только на демо-выгрузке (протокол 4)." },
+    { a: "ask.access", b: "ref.scope", note: "В ответе он повторяет про доступ ко всем магазинам с первого дня — руководитель стажировки пишет про демо-выгрузку (протокол 4)." },
+    { a: "ask.summer", b: "ed.school", note: "Он сам объясняет: «утром там, вечером здесь» — офлайн-школа с проживанием в Иннополисе и московский офис в одни даты (протокол 1)." }
   ],
   isImposter: true,
   feedbackCorrect: "Даты не сошлись дважды и масштаб рассыпался. «Сэкономил 40 млн» рождается ровно из такого доступа: демо-выгрузка и калькулятор.",
@@ -1138,6 +1222,16 @@ window.GAME_DATA.cases.push(
     { who: "caller", text: "Нет, это дома. Днём работа, вечером учёба, ночью своё. Сплю мало, знаю, что это не подвиг.", id: "iv.night" },
     { who: "you", text: "Как найдёте причину, если сервис отвечает 502?" },
     { who: "caller", text: "Смотрю, чей 502: балансировщик или апстрим. Логи nginx, живы ли бэкенды, healthcheck, потом ресурсы и таймауты. По порядку, а не наугад." }
+  ],
+  questions: [
+    { id: "ask.night", tag: "неудобный", q: "Ночные коммиты — это работа в чужом часовом поясе?",
+      a: "Нет, это дома. Днём смена, вечером учёба, ночью своё. Знаю, что режим плохой, но чужого времени тут нет." },
+    { id: "ask.nda", tag: "опыт", q: "Раз показать код нельзя — расскажите, что вы автоматизировали.",
+      a: "Разворачивание стенда: было двадцать шагов руками, стало один плейбук. Скрипт остался на объекте, унести его я не могу." },
+    { id: "ask.tech", tag: "техника", q: "Сервис отвечает 502. Первые три шага?",
+      a: "Смотрю, чей это 502 — балансировщик или апстрим. Логи, живы ли бэкенды, healthcheck. Потом ресурсы и таймауты." },
+    { id: "ask.ref", tag: "рекомендации", q: "Кто-то с объекта может подтвердить ваши слова?",
+      a: "Только кадры и только сухо: должность и даты. Характеристику режим не разрешает, справку я приложил." }
   ],
   audioCues: ["говорит медленно, будто устал", "ни одного громкого слова о себе"],
   contradictions: [],
@@ -3701,6 +3795,10 @@ window.GAME_DATA.cases.push(
     (c.probes || []).forEach((p) => {
       if (p.id && p.evidence) reg[p.id] = { kind: "probe", tab: L("probeTab", "ЗАПРОС"), label: p.label, value: p.evidence, id: p.id, secret: true };
     });
+    // ответы на заданные вопросы — такие же записи, как строки документов
+    (c.questions || []).forEach((q) => {
+      if (q.id) reg[q.id] = { kind: "answer", tab: L("askTab", "ОТВЕТ НА ВОПРОС"), label: q.q, value: q.a, id: q.id, secret: true };
+    });
     return reg;
   }
 
@@ -3735,13 +3833,18 @@ window.GAME_DATA.cases.push(
 
     /* ---------- левая колонка: папка кандидата ---------- */
     const dossier = el("div", "col dossier");
-    const idCard = el("div", "paper id-card");
-    const photo = el("div", "polaroid", faceHTML(c, { tag: "main" }));
-    photo.append(el("span", "pol-cap", esc(c.role || (c.meta && c.meta[Object.keys(c.meta)[0]]) || "")));
-    if (c.avatar) photo.append(el("span", "cat-badge", esc(c.avatar)));
-    idCard.append(photo);
+    const hasShot = !!FACES[c.id];          // тот же кадр крупно показан в окне созвона
+    const idCard = el("div", "paper id-card" + (hasShot ? " no-photo" : ""));
+    if (!hasShot) {
+      // фото нет — рисуем лицо здесь, иначе кандидат остался бы совсем без портрета
+      const photo = el("div", "polaroid", faceHTML(c, { tag: "main" }));
+      photo.append(el("span", "pol-cap", esc(c.role || (c.meta && c.meta[Object.keys(c.meta)[0]]) || "")));
+      if (c.avatar) photo.append(el("span", "cat-badge", esc(c.avatar)));
+      idCard.append(photo);
+    }
     const idInfo = el("div", "id-info");
-    idInfo.append(el("div", "cand-name", esc(c.name || "")));
+    idInfo.append(el("div", "cand-name", esc(c.name || "") +
+      (hasShot && c.role ? ` <span class="cand-role">${esc(c.role)}</span>` : "")));
     if (c.meta) {
       const meta = el("dl", "meta-grid");
       Object.keys(c.meta).forEach((k) => { meta.append(el("dt", null, esc(k))); meta.append(el("dd", null, esc(c.meta[k]))); });
@@ -3836,6 +3939,37 @@ window.GAME_DATA.cases.push(
       });
       pb.append(list);
       dossier.append(pb);
+    }
+
+    /* ---------- вопросы кандидату ----------
+       Игрок сам ведёт часть интервью: вопросов на выбор больше, чем можно
+       задать, поэтому приходится решать, что важнее спросить. Ответ попадает
+       в запись как обычная реплика — его можно обвести и сверить с документом. */
+    let asksLeft = c.askLimit != null ? c.askLimit : (G.askLimit != null ? G.askLimit : 2);
+    if (c.questions && c.questions.length) {
+      const qp = el("div", "paper asks");
+      qp.innerHTML = `<div class="asks-head"><span>${esc(L("askTitle", "СПРОСИТЬ КАНДИДАТА"))}</span>` +
+        `<span class="asks-left">${esc(L("askLeftWord", "осталось"))} <b>${asksLeft}</b></span></div>`;
+      const counter = qp.querySelector(".asks-left b");
+      const list = el("div", "ask-list");
+      c.questions.forEach((q) => {
+        const b = el("button", "ask-btn", `<span class="ask-q">${esc(q.q)}</span>` +
+          (q.tag ? `<span class="ask-tag">${esc(q.tag)}</span>` : ""));
+        b.onclick = () => {
+          if (decided || b.classList.contains("used")) return;
+          if (asksLeft <= 0) { toast(L("noAsks", "Вопросы на этого кандидата закончились."), "warn"); return; }
+          asksLeft--; counter.textContent = asksLeft;
+          b.classList.add("used");
+          revealed.add(q.id);
+          Snd.click();
+          addBubble({ who: "you", text: q.q });
+          setTimeout(() => { addBubble({ who: "caller", text: q.a, id: q.id }); }, 420);
+          if (asksLeft <= 0) qp.querySelectorAll(".ask-btn:not(.used)").forEach((x) => x.classList.add("off"));
+        };
+        list.append(b);
+      });
+      qp.append(list);
+      dossier.append(qp);
     }
 
     /* ---------- правая колонка: интервью + найденное ---------- */
@@ -3982,7 +4116,11 @@ window.GAME_DATA.cases.push(
       feed.append(bub); feed.scrollTop = feed.scrollHeight;
       Snd.blip();
     }
-    function unlock() { accept.disabled = reject.disabled = false; actions.classList.add("ready"); }
+    function unlock() {
+      accept.disabled = reject.disabled = false; actions.classList.add("ready");
+      // запись доиграла сама — кнопка «показать всю запись» больше не нужна
+      if (skip && skip.parentNode) skip.remove();
+    }
     function playLine() {
       faceOn(false);
       if (li >= lines.length) return unlock();
@@ -4012,9 +4150,14 @@ window.GAME_DATA.cases.push(
     function finish(accepted, blind) {
       if (decided) return; decided = true;
       accepted ? Snd.good() : Snd.bad();
+      // доступной считается пара, у которой обе строки открыты: часть нестыковок
+      // видна только после вопроса или проверки, а лимиты не дают вскрыть всё
+      const closed = (id) => reg[id] && reg[id].secret && !revealed.has(id);
+      const reachable = contras.filter((x) => !closed(x.a) && !closed(x.b)).length;
       decide(c, accepted, {
-        found: found.size, provable: contras.length, wasted: triesTotal - triesLeft,
-        blind: !!blind, contras: contras, reg: reg, probesUsed: usedProbes.size, foundKeysSet: found
+        found: found.size, provable: reachable, total: contras.length,
+        wasted: triesTotal - triesLeft, blind: !!blind, contras: contras, reg: reg,
+        closed: closed, probesUsed: usedProbes.size, foundKeysSet: found
       });
     }
 
@@ -4028,6 +4171,8 @@ window.GAME_DATA.cases.push(
       check: (a, b) => { marked.length = 0; repaintMarks(); toggleMark(a); toggleMark(b); checkPair(); },
       marksLeft: () => marked.slice(),
       probeAll: () => dossier.querySelectorAll(".probe-btn:not(.used)").forEach((b) => b.click()),
+      askAll: () => dossier.querySelectorAll(".ask-btn:not(.used):not(.off)").forEach((b) => b.click()),
+      asksLeft: () => asksLeft,
       marked: () => marked.slice(),
       hidden: () => Object.keys(reg).filter((k) => reg[k].secret && !revealed.has(k)),
       found: () => found.size,
@@ -4169,22 +4314,25 @@ window.GAME_DATA.cases.push(
     if (msg) scroll.append(el("p", "verdict-msg", esc(msg)));
 
     // разбор: все противоречия кейса — найденные и пропущенные
-    if (info.provable > 0) {
+    if ((info.total || info.provable) > 0) {
       const wrap = el("div", "tells");
       wrap.append(el("div", "tells-head", esc(G.tellsTitle || "ПРОТИВОРЕЧИЯ В ДЕЛЕ:")));
       const ul = el("ul", "clue-list");
       info.contras.forEach((x) => {
         const a = info.reg[x.a], b = info.reg[x.b];
         const isFound = (info.foundKeysSet && info.foundKeysSet.has(x.key));
-        const liEl = el("li", "clue " + (isFound ? "hit" : "miss"));
-        liEl.innerHTML = `<span class="clue-mark">${isFound ? "✔" : "✕"}</span>
+        const wasClosed = !isFound && info.closed && (info.closed(x.a) || info.closed(x.b));
+        const liEl = el("li", "clue " + (isFound ? "hit" : (wasClosed ? "locked" : "miss")));
+        liEl.innerHTML = `<span class="clue-mark">${isFound ? "✔" : (wasClosed ? "🔒" : "✕")}</span>
           <span class="clue-where"><b>${esc(a ? a.tab + " · " + a.label : x.a)}</b>: ${esc(a ? a.value : "")}<br>
           <b>${esc(b ? b.tab + " · " + b.label : x.b)}</b>: ${esc(b ? b.value : "")}</span>
           <span class="clue-note">${esc(x.note || "")}</span>`;
         ul.append(liEl);
       });
       wrap.append(ul);
+      const lockedCount = (info.total || 0) - info.provable;
       wrap.append(el("div", "accuracy", `${esc(L("provedWord", "Подтверждено"))}: <b>${info.found}/${info.provable}</b>` +
+        (lockedCount > 0 ? ` · <span class="locked-note">${esc(L("lockedWord", "ещё"))} ${lockedCount} ${esc(L("lockedTail", "открывались вопросом или проверкой"))}</span>` : "") +
         (info.wasted ? ` · <span class="miss">${esc(L("wastedWord", "порвано нитей"))}: ${info.wasted}</span>` : "") +
         (info.found === info.provable ? ` · <span class="hit">${esc(L("cleanWord", "дело собрано чисто"))}</span>` : "")));
       scroll.append(wrap);
