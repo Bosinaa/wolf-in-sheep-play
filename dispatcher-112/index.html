@@ -350,7 +350,6 @@ window.GAME_DATA = {
   id: "dispatcher-112",
   title: "ДИСПЕТЧЕР 112",
   subtitle: "Ночная смена на пульте спасения. Один из голосов в трубке — не человек.",
-  credits: "verification-horror engine · ночной хоррор",
 
   theme: {
     bg: "#07090c", panel: "#101821", panel2: "#17222d", line: "#233240",
@@ -1716,7 +1715,7 @@ window.GAME_DATA = {
     how.onclick = () => { Audio.click(); renderHowTo(); };
     btns.append(how);
     box.append(btns);
-    box.append(el("p", "credits", esc(G.credits || "")));
+    if (G.credits) box.append(el("p", "credits", esc(G.credits)));
     sc.append(box);
     root.append(sc);
   }

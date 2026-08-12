@@ -186,10 +186,15 @@ body.thunk #game{animation:thunk .42s}
 .stage{width:100%;flex:1;min-height:0;display:grid;gap:14px;
   grid-template-columns:minmax(0,1.08fr) minmax(0,1fr)}
 .col{min-height:0;display:flex;flex-direction:column;gap:10px;overflow:auto;padding-right:2px}
-/* блоки в колонке не сжимаются: иначе в длинных кейсах папка «съедала»
-   вкладки, а панель проверок наезжала на документы. Колонка скроллится. */
+/* Раскладка колонок фиксированная: фото, подсказка, вкладки и проверки
+   всегда на экране, а прокручивается только длинный список строк внутри
+   своего окна. Иначе на невысоких экранах колонка уезжала целиком и
+   ключевые элементы приходилось искать прокруткой. */
+.col{overflow:auto}
 .col>*{flex:0 0 auto}
-.talk-paper{flex:1 1 auto;min-height:260px}
+.dossier .folder{flex:1 1 auto;min-height:64px}
+.doc-pane{flex:1 1 auto;min-height:0;overflow:auto}
+.talk-paper{flex:1 1 auto;min-height:180px}
 .col::-webkit-scrollbar{width:8px}
 .col::-webkit-scrollbar-thumb{background:#3d4b3f;border-radius:4px}
 
@@ -226,7 +231,7 @@ body.thunk #game{animation:thunk .42s}
 .polaroid{overflow:hidden}
 /* окно видеозвонка: кадр интервью крупно, как в записи созвона */
 .vcall{position:relative;margin:0 0 10px;border:1px solid #c3b498;background:#e9e1d2;overflow:hidden}
-.vcall .shot{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;
+.vcall .shot{display:block;width:100%;height:clamp(150px,25vh,250px);object-fit:cover;object-position:50% 12%;
   filter:contrast(1.03) saturate(.97)}
 .vcall .vc-rec{position:absolute;top:7px;left:8px;font-family:var(--ui);font-size:9.5px;letter-spacing:1.4px;
   color:#fff;background:rgba(184,51,44,.9);padding:3px 7px;border-radius:2px;animation:rec 1.8s infinite}
@@ -289,7 +294,15 @@ body.thunk #game{animation:thunk .42s}
 .doc-empty{font-size:15px;color:#8a7c68;font-style:italic;padding:14px 2px}
 
 /* ---------- запросы ---------- */
-.probes{transform:rotate(.4deg)}
+/* блок с прокруткой: снизу лёгкое затухание, чтобы обрезанный текст
+   читался как «есть продолжение», а не как поломка вёрстки */
+.probes{transform:rotate(.4deg);max-height:clamp(132px,24vh,200px);overflow:auto;
+  background-image:linear-gradient(178deg,var(--paper),var(--paper2)),
+    linear-gradient(to top,rgba(180,160,120,.35),transparent 26px);
+  background-repeat:no-repeat;background-size:100% 100%,100% 100%;background-attachment:local,scroll}
+.doc-pane{background-image:linear-gradient(178deg,var(--paper),var(--paper2)),
+    linear-gradient(to top,rgba(180,160,120,.3),transparent 22px);
+  background-repeat:no-repeat;background-size:100% 100%,100% 100%;background-attachment:local,scroll}
 .probes-head{font-family:var(--serif);font-size:12.5px;letter-spacing:1.8px;text-transform:uppercase;
   color:#4b4238;border-bottom:2px solid #c3b498;padding-bottom:6px;margin-bottom:8px}
 .probe-list{display:flex;flex-direction:column;gap:6px}
@@ -301,6 +314,7 @@ body.thunk #game{animation:thunk .42s}
 .pb-cost{font-size:12px;color:var(--accent2);letter-spacing:.6px;white-space:nowrap}
 .pb-done{color:var(--ok);font-weight:700}
 .probe-result{font-family:var(--type);font-size:14px;line-height:1.5;padding:10px 11px;margin:0 0 2px;
+  max-height:104px;overflow:auto;
   background:rgba(63,111,143,.12);border-left:3px solid var(--accent2);color:#3a332a;
   display:flex;flex-direction:column;gap:6px;align-items:flex-start;animation:freshIn .6s}
 .probe-result b{letter-spacing:1px;font-size:12px;color:var(--accent2)}
@@ -526,6 +540,88 @@ body.thunk #game{animation:thunk .42s}
   .probe-btn{white-space:normal}
 }
 
+/* ---- невысокие экраны (ноутбуки 768–800px и меньше) ----
+   Всё то же самое, но плотнее по вертикали: иначе папка кандидата
+   не влезает целиком и приходится её прокручивать. */
+@media (max-height:820px){
+  .play{gap:8px;padding:8px 12px 10px}
+  .markbar{padding:5px 10px;gap:8px}
+  .mb-hint{font-size:12px;line-height:1.35}
+  .mb-count,.mb-tries{font-size:11.5px}
+  .hud{padding:5px 10px}
+  .polaroid{flex-basis:112px;width:112px}
+  .polaroid .riso,.polaroid .shot{height:124px}
+  .cand-name{font-size:19px;margin-bottom:6px;padding-bottom:5px}
+  .meta-grid{gap:3px 10px;font-size:13.5px}
+  .id-card{padding:11px 12px 10px}
+  .markbar{padding:6px 11px}
+  .mb-hint{font-size:12.5px}
+  .doc-row{padding:6px 4px;font-size:15px}
+  .doc-pane{padding:10px 12px 11px;min-height:0}
+  .paper{padding:11px 12px 10px}
+  .probe-btn{padding:8px 10px;font-size:13px}
+  .probe-result{padding:8px 10px;font-size:13px}
+  .bubble{padding:8px 11px;font-size:15px}
+  .feed{gap:7px}
+  .vcall{margin-bottom:8px}
+  .vcall .shot{height:clamp(130px,20vh,190px)}
+  .findings{padding:8px 11px}
+  .big{padding:13px 20px;font-size:16px}
+}
+@media (max-height:760px){
+  .stage{gap:10px}
+  .col{gap:8px}
+
+  .mb-hint{display:block;max-height:2.8em;overflow:hidden}
+  .polaroid{flex-basis:100px;width:100px}
+  .polaroid .riso,.polaroid .shot{height:110px}
+  .doc-row{padding:5px 4px;font-size:14.5px}
+  .id-card{padding:9px 11px 9px;gap:11px}
+  .meta-grid{gap:2px 9px;font-size:13px}
+  .paper{padding:9px 11px 9px}
+  .probe-btn{padding:7px 9px;font-size:12.5px}
+  .tab{padding:6px 10px 8px;font-size:12px}
+
+  .markbar{padding:4px 10px}
+  .mb-hint{font-size:11.5px}
+  .probes{max-height:clamp(118px,21vh,168px)}
+  .probe-result{max-height:82px;font-size:12.5px;padding:8px 10px}
+  .probes-head{margin-bottom:6px}
+  .doc-head{margin-bottom:6px}
+  .cues{margin-bottom:7px}
+}
+@media (max-height:700px){
+  .mb-hint{max-height:1.5em}
+  .probes{max-height:clamp(104px,19vh,148px)}
+
+  .polaroid{flex-basis:96px;width:96px}
+  .polaroid .riso,.polaroid .shot{height:106px}
+  .cand-name{font-size:17px}
+  .doc-row{font-size:14px;padding:5px 4px}
+  .bubble{font-size:14px}
+  .vcall .shot{height:clamp(112px,17vh,160px)}
+  .big{padding:11px 16px;font-size:15px}
+}
+
+/* совсем низкие окна (648px и меньше — например браузер в половину экрана) */
+@media (max-height:660px){
+  .play{gap:6px;padding:6px 10px 8px}
+  .stage{gap:8px}
+  .col{gap:6px}
+  .polaroid{flex-basis:84px;width:84px}
+  .polaroid .riso,.polaroid .shot{height:94px}
+  .cand-name{font-size:16px;margin-bottom:5px;padding-bottom:4px}
+  .meta-grid{font-size:12px;gap:2px 8px}
+  .doc-row{font-size:13.5px;padding:4px 3px}
+  .doc-label{font-size:12px}
+  .bubble{font-size:13.5px;padding:7px 9px}
+  .probes{max-height:clamp(90px,16vh,124px)}
+  .probe-result{font-size:12px;max-height:64px}
+  .findings{padding:6px 9px}
+  .fd-note{font-size:12.5px}
+  .big{padding:10px 14px;font-size:14px}
+}
+
 </style>
 </head>
 <body>
@@ -548,7 +644,6 @@ window.GAME_DATA = {
   id: "wolf-in-sheep",
   title: "ВОЛК В ОВЕЧЬЕЙ ШКУРЕ",
   subtitle: "Ты — рекрутёр компании «Отара». Резюме врут красиво. Поймать вранье можно только одним способом: положить два документа рядом и обвести то, что не сходится.",
-  credits: "verification-noir · движок v4 · красный карандаш и сверка фактов",
 
   theme: {
     bg: "#171c18", panel: "#26312a", panel2: "#1e261f", line: "#3d4b3f",
@@ -3319,6 +3414,10 @@ window.GAME_DATA.cases.push(
     if (state.combo >= 2) right.append(el("div", "hud-combo", `серия ×${state.combo}`));
     right.append(el("div", "hud-probes", `<span class="m-label">${esc(L("probeWord", "ЗАПРОСЫ"))}</span> <b>${state.probesLeft}</b>`));
     right.append(el("div", "meters", meterHTML("wolves") + meterHTML("unfair")));
+    const proto = el("button", "hud-btn", "📋");
+    proto.title = G.protocolTitle || "ПРОТОКОЛ";
+    proto.onclick = () => { Snd.click(); showProtocol(); };
+    right.append(proto);
     const mute = el("button", "hud-btn", Snd.isMuted() ? "🔇" : "🔊");
     mute.onclick = () => { const m = Snd.toggleMute(); mute.textContent = m ? "🔇" : "🔊"; };
     const menuBtn = el("button", "hud-btn", "☰");
@@ -3367,7 +3466,7 @@ window.GAME_DATA.cases.push(
     how.onclick = () => { Snd.click(); renderHowTo(); };
     btns.append(how);
     box.append(btns);
-    box.append(el("p", "credits", esc(G.credits || "")));
+    if (G.credits) box.append(el("p", "credits", esc(G.credits)));
     sc.append(box);
     root.append(sc);
   }
@@ -3571,10 +3670,6 @@ window.GAME_DATA.cases.push(
       pb.append(list);
       dossier.append(pb);
     }
-
-    const protoBtn = el("button", "btn btn-ghost btn-sm", "📋 " + esc(G.protocolTitle || "ПРОТОКОЛ"));
-    protoBtn.onclick = () => { Snd.click(); showProtocol(); };
-    dossier.append(protoBtn);
 
     /* ---------- правая колонка: интервью + найденное ---------- */
     const right = el("div", "col talk");

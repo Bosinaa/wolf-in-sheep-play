@@ -350,7 +350,6 @@ window.GAME_DATA = {
   id: "night-support",
   title: "СЛУЖБА ПОДДЕРЖКИ В 3 ЧАСА НОЧИ",
   subtitle: "Ночная смена чата техподдержки. Не каждый, кто пишет в окно, — человек.",
-  credits: "verification-horror engine · v3",
 
   timerSeconds: 55,
   caseWord: "ЧАТ",
@@ -1879,7 +1878,7 @@ window.GAME_DATA = {
     how.onclick = () => { Audio.click(); renderHowTo(); };
     btns.append(how);
     box.append(btns);
-    box.append(el("p", "credits", esc(G.credits || "")));
+    if (G.credits) box.append(el("p", "credits", esc(G.credits)));
     sc.append(box);
     root.append(sc);
   }
