@@ -252,9 +252,9 @@ body.thunk #game{animation:thunk .42s}
 /* приоритет — документам: папка получает всё свободное место и не уходит ниже
    читаемой высоты, а панели проверок и вопросов сжимаются (у них свой скролл) */
 .dossier .folder{flex:1 1 auto;min-height:200px}
-.dossier .tools{flex:0 1 auto;min-height:130px;max-height:clamp(150px,27vh,290px)}
+.dossier .probes{flex:0 1 auto;min-height:104px;max-height:clamp(120px,22vh,210px);overflow:auto}
 .doc-pane{flex:1 1 auto;min-height:0;overflow:auto}
-.talk-paper{flex:1 1 auto;min-height:180px}
+.talk-paper{flex:1 1 auto;min-height:150px}
 .col::-webkit-scrollbar{width:8px}
 .col::-webkit-scrollbar-thumb{background:#3d4b3f;border-radius:4px}
 
@@ -364,7 +364,10 @@ body.thunk #game{animation:thunk .42s}
 .doc-pane{background-image:linear-gradient(178deg,var(--paper),var(--paper2)),
     linear-gradient(to top,rgba(180,160,120,.3),transparent 22px);
   background-repeat:no-repeat;background-size:100% 100%,100% 100%;background-attachment:local,scroll}
-.probes-head{display:none}
+.probes-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  font-family:var(--serif);font-size:12.5px;letter-spacing:1.8px;text-transform:uppercase;
+  color:#4b4238;border-bottom:2px solid #c3b498;padding-bottom:6px;margin-bottom:8px}
+.probes-head b{font-family:var(--type);color:var(--thread);font-size:15px;letter-spacing:0}
 .probe-list{display:flex;flex-direction:column;gap:6px}
 .probe-btn{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;
   font-family:var(--type);font-size:14px;padding:10px 11px;border:1px dashed #a8967a;background:rgba(255,255,255,.34);
@@ -379,27 +382,20 @@ body.thunk #game{animation:thunk .42s}
   display:flex;flex-direction:column;gap:6px;align-items:flex-start;animation:freshIn .6s}
 .probe-result b{letter-spacing:1px;font-size:12px;color:var(--accent2)}
 
-/* ---------- панель действий: вопросы и проверки на вкладках ---------- */
-.tools{padding:0;overflow:hidden;display:flex;flex-direction:column;min-height:0;transform:rotate(-.2deg)}
-.tool-tabs{display:flex;gap:2px;flex:0 0 auto;background:#d8caae;border-bottom:1px solid #b9a884}
-.tool-tab{flex:1 1 auto;font-family:var(--serif);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;
-  padding:9px 8px;border:none;background:transparent;color:#6b6053}
-.tool-tab b{font-family:var(--type);color:var(--thread);font-size:13px;letter-spacing:0}
-.tool-tab.active{background:linear-gradient(178deg,var(--paper),var(--paper2));color:#241f1a;
-  box-shadow:inset 0 -2px 0 var(--thread)}
-.tool-tab:hover:not(.active){background:rgba(255,255,255,.35)}
-.tool-body{flex:1 1 auto;min-height:0;overflow:auto;padding:10px 12px 12px;
-  background-image:linear-gradient(178deg,var(--paper),var(--paper2)),
-    linear-gradient(to top,rgba(180,160,120,.3),transparent 22px);
-  background-repeat:no-repeat;background-size:100% 100%,100% 100%;background-attachment:local,scroll}
-
 /* ---------- вопросы кандидату ---------- */
 
 .asks-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
-  font-family:var(--type);font-size:11.5px;letter-spacing:.6px;color:#8a7c68;margin-bottom:7px}
+  font-family:var(--serif);font-size:12.5px;letter-spacing:1.8px;text-transform:uppercase;color:#4b4238;
+  border-bottom:2px solid #c3b498;padding-bottom:6px;margin-bottom:8px}
+.asks-left{text-transform:none;letter-spacing:.4px;font-family:var(--type);font-size:11.5px;color:#8a7c68}
 .asks-left{font-family:var(--type);font-size:11.5px;letter-spacing:.6px;color:#8a7c68;text-transform:none}
 .asks-left b{color:var(--thread);font-size:15px}
-.ask-list{display:flex;flex-direction:column;gap:5px}
+.asks{flex:0 1 auto;max-height:clamp(120px,22vh,210px);overflow:auto;
+  background-image:linear-gradient(178deg,var(--paper),var(--paper2)),
+    linear-gradient(to top,rgba(180,160,120,.3),transparent 22px);
+  background-repeat:no-repeat;background-size:100% 100%,100% 100%;background-attachment:local,scroll}
+.ask-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+@media (max-width:1150px){.ask-list{grid-template-columns:1fr}}
 .ask-btn{display:flex;align-items:baseline;justify-content:space-between;gap:8px;text-align:left;
   font-family:var(--type);font-size:13.5px;line-height:1.35;padding:7px 10px;border:1px solid #a8967a;
   background:rgba(255,255,255,.42);color:var(--ink);border-radius:2px;transition:border-color .15s,background .15s}
@@ -4552,7 +4548,8 @@ window.GAME_DATA.cases.push(
     const contras = (c.contradictions || []).map((x, i) => ({ i: i, a: x.a, b: x.b, note: x.note, key: pairKey(x.a, x.b) }));
     const contraByKey = {}; contras.forEach((x) => (contraByKey[x.key] = x));
 
-    let probeTabBtn = null;
+    let probeHead = null;
+    let askPanel = null;
     const marked = [];                 // id отмеченных красной рамкой
     const found = new Set();           // ключи подтверждённых пар
     const inPair = new Set();           // id строк, вошедших в подтверждённую пару
@@ -4638,30 +4635,10 @@ window.GAME_DATA.cases.push(
     folder.append(tabsRow, pane);
     dossier.append(folder);
 
-    /* Вопросы и проверки живут в одной панели с вкладками: двумя блоками они
-       съедали место у документов, а листать документы нужно чаще всего. */
-    const tools = el("div", "paper tools");
-    const toolTabs = el("div", "tool-tabs");
-    const toolBody = el("div", "tool-body");
-    tools.append(toolTabs, toolBody);
-    const panes = {};
-    function toolTab(key, title, node) {
-      panes[key] = node;
-      const tb = el("button", "tool-tab", title);
-      tb.onclick = () => {
-        Snd.page();
-        toolTabs.querySelectorAll(".tool-tab").forEach((x) => x.classList.remove("active"));
-        tb.classList.add("active");
-        toolBody.innerHTML = ""; toolBody.append(node);
-      };
-      toolTabs.append(tb);
-      if (toolTabs.children.length === 1) { tb.classList.add("active"); toolBody.append(node); }
-      return tb;
-    }
-
-    // проверки (звонки, реестры, ЕГРЮЛ)
+    // проверки (звонки, реестры, ЕГРЮЛ) — слева, рядом с документами
     if (c.probes && c.probes.length) {
-      const pb = el("div", "probes-pane");
+      const pb = el("div", "paper probes");
+      pb.innerHTML = `<div class="probes-head">${esc(L("probeTitle", "ПРОВЕРКИ (тратят дневной лимит)"))} <b>${state.probesLeft}</b></div>`;
       const list = el("div", "probe-list");
       c.probes.forEach((p) => {
         const b = el("button", "probe-btn", `<span class="pb-label">${esc(p.label)}</span><span class="pb-cost">−${p.cost || 1}</span>`);
@@ -4670,7 +4647,7 @@ window.GAME_DATA.cases.push(
           const cost = p.cost || 1;
           if (state.probesLeft < cost) { toast(L("noProbes", "Лимит проверок на сегодня исчерпан."), "warn"); return; }
           state.probesLeft -= cost; usedProbes.add(p.id);
-          if (probeTabBtn) probeTabBtn.innerHTML = esc(L("probeTab2", "ПРОВЕРКИ")) + ` <b>${state.probesLeft}</b>`;
+          if (probeHead) probeHead.textContent = state.probesLeft;
           Snd.probe();
           (p.reveals || []).forEach((fid) => revealed.add(fid));
           if (p.evidence) revealed.add(p.id);
@@ -4690,7 +4667,8 @@ window.GAME_DATA.cases.push(
         list.append(b);
       });
       pb.append(list);
-      probeTabBtn = toolTab("probes", esc(L("probeTab2", "ПРОВЕРКИ")) + ` <b>${state.probesLeft}</b>`, pb);
+      probeHead = pb.querySelector(".probes-head b");
+      dossier.append(pb);
     }
 
     /* ---------- вопросы кандидату ----------
@@ -4698,10 +4676,9 @@ window.GAME_DATA.cases.push(
        задать, поэтому приходится решать, что важнее спросить. Ответ попадает
        в запись как обычная реплика — его можно обвести и сверить с документом. */
     let asksLeft = c.askLimit != null ? c.askLimit : (G.askLimit != null ? G.askLimit : 2);
-    let askTabBtn = null;
     if (c.questions && c.questions.length) {
-      const qp = el("div", "asks-pane");
-      qp.innerHTML = `<div class="asks-head"><span>${esc(L("askHint", "выбери, что спросить"))}</span>` +
+      const qp = el("div", "paper asks");
+      qp.innerHTML = `<div class="asks-head"><span>${esc(L("askTitle", "СПРОСИТЬ КАНДИДАТА"))}</span>` +
         `<span class="asks-left">${esc(L("askLeftWord", "осталось"))} <b>${asksLeft}</b></span></div>`;
       const counter = qp.querySelector(".asks-left b");
       const list = el("div", "ask-list");
@@ -4712,7 +4689,6 @@ window.GAME_DATA.cases.push(
           if (decided || b.classList.contains("used")) return;
           if (asksLeft <= 0) { toast(L("noAsks", "Вопросы на этого кандидата закончились."), "warn"); return; }
           asksLeft--; counter.textContent = asksLeft;
-          if (askTabBtn) askTabBtn.innerHTML = esc(L("askTab2", "СПРОСИТЬ")) + ` <b>${asksLeft}</b>`;
           b.classList.add("used");
           revealed.add(q.id);
           Snd.click();
@@ -4723,9 +4699,8 @@ window.GAME_DATA.cases.push(
         list.append(b);
       });
       qp.append(list);
-      askTabBtn = toolTab("asks", esc(L("askTab2", "СПРОСИТЬ")) + ` <b>${asksLeft}</b>`, qp);
+      askPanel = qp;                      // повесим в правую колонку, под запись интервью
     }
-    if (toolTabs.children.length) dossier.append(tools);
 
     /* ---------- правая колонка: интервью + найденное ---------- */
     const right = el("div", "col talk");
@@ -4739,6 +4714,8 @@ window.GAME_DATA.cases.push(
     }
     const feed = el("div", "feed"); tp.append(feed);
     right.append(tp);
+
+    if (askPanel) right.append(askPanel);
 
     const findings = el("div", "findings");
     findings.append(el("div", "fd-head", esc(L("findingsTitle", "ПОДТВЕРЖДЁННЫЕ НЕСТЫКОВКИ"))));
