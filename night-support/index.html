@@ -1,0 +1,2292 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171c18">
+<meta name="description" content="Ночная смена чата техподдержки. Не каждый, кто пишет в окно, — человек.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="СЛУЖБА ПОДДЕРЖКИ В 3 ЧАСА НОЧИ">
+<meta property="og:description" content="Ночная смена чата техподдержки. Не каждый, кто пишет в окно, — человек.">
+<meta property="og:image" content="og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="СЛУЖБА ПОДДЕРЖКИ В 3 ЧАСА НОЧИ">
+<meta name="twitter:description" content="Ночная смена чата техподдержки. Не каждый, кто пишет в окно, — человек.">
+<meta name="twitter:image" content="og.jpg">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="favicon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+<title>СЛУЖБА ПОДДЕРЖКИ В 3 ЧАСА НОЧИ</title>
+<style>
+/* ===== VERIFICATION-HORROR ENGINE v2 — скин ===== */
+:root{
+  --bg:#0b0d10; --panel:#14181d; --panel2:#1b2027; --line:#2a323c;
+  --text:#e8edf2; --dim:#8b97a5; --accent:#5ad1c9; --accent2:#c9a15a;
+  --ok:#4fd67f; --danger:#e5545a;
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+#game{height:100%}
+button{font-family:inherit;cursor:pointer}
+::selection{background:var(--accent);color:#000}
+
+/* ---- CRT / атмосфера (поверх всего, не мешает кликам) ---- */
+.fx{position:fixed;inset:0;pointer-events:none;z-index:80}
+.fx-scan{position:absolute;inset:0;opacity:.35;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0,rgba(0,0,0,.25) 1px,transparent 1px,transparent 3px)}
+.fx-crt{position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5) 100%);
+  box-shadow:inset 0 0 160px rgba(0,0,0,.6)}
+.fx-alarm{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 130px var(--danger),inset 0 0 40px var(--danger);transition:opacity .25s}
+body.crit-pulse .fx-alarm{opacity:.55;animation:pulse .5s infinite}
+.fx-grain{position:absolute;inset:-50%;opacity:.05;animation:grain .6s steps(3) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-4%,3%)}66%{transform:translate(3%,-2%)}100%{transform:translate(0,0)}}
+
+.screen{position:relative;height:100%;width:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:18px;overflow:hidden;animation:scin .35s}
+@keyframes scin{from{opacity:0}to{opacity:1}}
+.vignette{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,.7) 100%)}
+.screen>*{position:relative;z-index:1}
+
+/* ---- Кнопки ---- */
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+  padding:13px 20px;border-radius:10px;font-size:15px;font-weight:600;letter-spacing:.3px;
+  transition:transform .08s,background .15s,border-color .15s;min-width:180px}
+.btn:hover:not(:disabled){background:#232a33;border-color:var(--accent);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.32;cursor:not-allowed}
+.btn-accent{background:var(--accent);color:#06110f;border-color:transparent}
+.btn-accent:hover:not(:disabled){filter:brightness(1.12)}
+.btn-ok{background:var(--ok);color:#04120a;border-color:transparent}
+.btn-ok:hover:not(:disabled){filter:brightness(1.1)}
+.btn-danger{background:var(--danger);color:#fff;border-color:transparent}
+.btn-danger:hover:not(:disabled){filter:brightness(1.1)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--dim)}
+.btn-ghost:hover:not(:disabled){color:var(--text)}
+.btn-sm{padding:8px 12px;font-size:12px;min-width:0}
+.big{font-size:17px;padding:16px 26px;flex:1}
+
+/* ---- Персонаж (SVG-лицо) ---- */
+.face{width:100%;height:100%;display:block}
+.face .fl-eyes{animation:blink 4.8s infinite}
+.face .fl-eyes .pupil{animation:glance 7s infinite}
+@keyframes blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+@keyframes glance{0%,40%{transform:translateX(0)}45%,60%{transform:translateX(-3px)}65%,85%{transform:translateX(3px)}90%,100%{transform:translateX(0)}}
+.face .mouth-open{opacity:0}
+.face.talking .mouth-closed{opacity:0}
+.face.talking .mouth-open{opacity:1;animation:talk .2s steps(2) infinite;transform-origin:100px 165px}
+@keyframes talk{0%{transform:scaleY(.35)}100%{transform:scaleY(1)}}
+.face.glitch{animation:facejit 4s infinite}
+@keyframes facejit{0%,82%,100%{filter:none;transform:none}
+  84%{filter:hue-rotate(50deg) saturate(1.6);transform:translate(-2px,1px) skewX(3deg)}
+  86%{transform:translate(3px,-1px)}88%{filter:contrast(1.4);transform:translate(-1px,0)}90%{transform:none}}
+
+/* ---- Меню ---- */
+.menu{overflow:hidden}
+.menu-peek{position:absolute;right:-40px;bottom:-30px;width:min(46vw,440px);height:min(70vh,560px);
+  opacity:.16;z-index:0;filter:grayscale(.3) contrast(1.1);pointer-events:none;animation:peek 9s ease-in-out infinite}
+@keyframes peek{0%,100%{transform:translateY(10px)}50%{transform:translateY(-6px)}}
+.menu-box{text-align:center;max-width:640px;animation:fade .8s}
+.game-title{font-size:clamp(40px,8.5vw,88px);font-weight:900;letter-spacing:2px;margin:0 0 10px;line-height:.92;
+  text-wrap:balance;text-transform:uppercase;
+  text-shadow:3px 0 0 var(--accent),-3px 0 0 var(--danger),0 3px 0 rgba(0,0,0,.55),0 0 30px rgba(0,0,0,.6)}
+.game-sub{color:var(--dim);font-size:16px;margin:0 0 34px;max-width:520px;margin-inline:auto}
+.menu-btns{display:flex;flex-direction:column;gap:12px;align-items:center}
+.menu-btns .btn{width:280px}
+.credits{color:var(--dim);opacity:.55;font-size:12px;margin-top:30px}
+
+/* ---- Сюжет / дни ---- */
+.story-box{max-width:680px;text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center}
+.story-line{font-size:clamp(16px,2.2vw,20px);line-height:1.55;opacity:0;animation:fade .8s forwards}
+.story-line.show{opacity:1;animation:none}
+.day-badge{font-family:var(--mono);letter-spacing:4px;color:var(--accent);font-size:14px;border:1px solid var(--line);padding:6px 16px;border-radius:99px}
+.day-title{font-size:clamp(24px,4vw,38px);font-weight:800;margin:4px 0}
+.day-score,.final-score{font-family:var(--mono);font-size:40px;font-weight:800;color:var(--accent)}
+.final-score{font-size:18px;color:var(--dim)}
+.rank-badge{font-family:var(--mono);letter-spacing:2px;color:var(--accent2);border:1px solid var(--accent2);
+  padding:8px 18px;border-radius:99px;font-weight:700}
+.combo-note{color:var(--accent2);font-size:15px;font-weight:600}
+.ending-title{font-size:clamp(30px,6vw,56px);font-weight:900;margin:0}
+.ending.lose .ending-title{color:var(--danger)}.ending.win .ending-title{color:var(--ok)}
+
+/* ---- Reader ---- */
+.doc-screen{align-items:center}
+.reader{max-width:680px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 30px;max-height:86vh;overflow:auto}
+.reader-h{color:var(--accent);letter-spacing:1px;font-size:18px;margin:18px 0 10px}
+.reader-h:first-child{margin-top:0}
+.reader-list{margin:0 0 8px;padding-left:22px;line-height:1.6}
+.reader-list li{margin-bottom:8px}
+.reader .btn{margin-top:16px}
+
+/* ---- HUD ---- */
+.hud{position:absolute;top:0;left:0;right:0;z-index:6;display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;gap:10px;background:linear-gradient(var(--bg),rgba(0,0,0,0))}
+.hud-left{display:flex;align-items:center;gap:12px}
+.hud-title{font-weight:800;letter-spacing:1px;font-size:15px}
+.hud-case{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);padding:3px 8px;border-radius:6px}
+.hud-right{display:flex;align-items:center;gap:10px}
+.hud-combo{font-family:var(--mono);font-size:12px;color:var(--accent2);font-weight:700;animation:fade .3s}
+.hud-strikes{display:flex;align-items:center;gap:6px;font-size:13px}
+.hud-label{color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:1px}
+.strike{color:var(--line);font-size:16px}
+.strike.lost{color:var(--danger);text-shadow:0 0 8px var(--danger);animation:pop .3s}
+.hud-btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);width:34px;height:34px;border-radius:8px;font-size:15px}
+.hud-btn:hover{border-color:var(--accent)}
+
+/* ---- Таймер ---- */
+.timer{position:absolute;top:48px;left:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:0 18px}
+.timer-track{flex:1;height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.timer-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .1s linear}
+.timer-fill.warn{background:var(--accent2)}
+.timer-fill.crit{background:var(--danger);animation:pulse .5s infinite}
+.timer-num{font-family:var(--mono);font-size:13px;color:var(--dim);min-width:22px;text-align:right}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ---- Атмосферный фон-комната ---- */
+.room{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.room::before{content:"";position:absolute;width:60%;height:55%;left:-10%;top:-10%;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%);
+  filter:blur(40px);opacity:.5;animation:drift1 16s ease-in-out infinite}
+.room::after{content:"";position:absolute;width:55%;height:50%;right:-12%;bottom:-8%;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent2) 18%,transparent),transparent 70%);
+  filter:blur(46px);opacity:.4;animation:drift2 21s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,20px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-26px,-18px)}}
+/* пылинки в свете лампы */
+.mote{position:absolute;width:3px;height:3px;border-radius:50%;background:color-mix(in srgb,var(--accent) 60%,#fff);
+  opacity:.18;filter:blur(.4px);animation:mote linear infinite}
+.mote:nth-child(1){left:18%;animation-duration:15s;animation-delay:-2s}
+.mote:nth-child(2){left:34%;animation-duration:19s;animation-delay:-8s;width:2px;height:2px}
+.mote:nth-child(3){left:52%;animation-duration:13s;animation-delay:-5s}
+.mote:nth-child(4){left:66%;animation-duration:22s;animation-delay:-12s;width:2px;height:2px}
+.mote:nth-child(5){left:78%;animation-duration:17s;animation-delay:-3s}
+.mote:nth-child(6){left:88%;animation-duration:20s;animation-delay:-9s;width:4px;height:4px}
+.mote:nth-child(7){left:8%;animation-duration:24s;animation-delay:-15s;width:2px;height:2px}
+@keyframes mote{0%{transform:translateY(105vh) translateX(0)}100%{transform:translateY(-10vh) translateX(24px)}}
+
+/* ---- Сцена ---- */
+.play{justify-content:flex-start;padding-top:66px;gap:14px}
+/* въезд папки-дела и «включение» монитора */
+.file-panel{animation:fileIn .55s cubic-bezier(.2,.8,.25,1) both}
+.talk-panel{animation:monOn .6s ease-out both}
+@keyframes fileIn{0%{opacity:0;transform:translateY(-26px) rotate(-1.4deg)}60%{transform:translateY(4px) rotate(.4deg)}100%{opacity:1;transform:none}}
+@keyframes monOn{0%{opacity:0;filter:brightness(3) blur(2px)}12%{opacity:1;filter:brightness(3)}14%{filter:brightness(.4)}18%{filter:brightness(2.5)}100%{opacity:1;filter:none}}
+/* тряска экрана при штампе-вердикте */
+body.thunk .screen{animation:thunk .4s}
+@keyframes thunk{0%{transform:translate(0,0)}15%{transform:translate(3px,-4px) rotate(.3deg)}30%{transform:translate(-4px,3px) rotate(-.3deg)}50%{transform:translate(3px,2px)}70%{transform:translate(-2px,-2px)}100%{transform:translate(0,0)}}
+/* фото в деле слегка покачивается */
+.portrait{animation:sway 6s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(-1.4deg)}}
+.stage{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:14px;width:100%;max-width:960px;flex:1;min-height:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.panel-head{padding:11px 16px;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--accent);
+  border-bottom:1px solid var(--line);background:var(--panel2);display:flex;align-items:center;gap:8px}
+.panel-head .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.panel-head .dot.live{background:var(--danger);box-shadow:0 0 8px var(--danger);animation:pulse 1.4s infinite}
+.panel-body{padding:16px;overflow:auto;flex:1}
+
+/* ===== Левая панель — БУМАЖНОЕ ДЕЛО (арт-дирекция) ===== */
+:root{--paper:#ece4d0;--paper2:#e0d7bd;--ink:#2a2318;--ink-dim:#7c6e54;--stamp:#b23b2e;--paper-line:#c3b791}
+.file-panel{color:var(--ink);border:1px solid #b0a483;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 25px,rgba(120,95,55,.05) 25px 26px),
+    linear-gradient(150deg,#efe8d6,#ddd3b7);
+  box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 0 70px rgba(150,120,75,.14)}
+/* дырокол-поля слева */
+.file-panel::before{content:"";position:absolute;left:9px;top:64px;bottom:16px;width:12px;z-index:2;pointer-events:none;
+  background:radial-gradient(circle at 50% 0,#0000 0,#0000 5px,transparent 6px);
+  background:repeating-radial-gradient(circle,rgba(0,0,0,.28) 0 5px,transparent 6px 999px);
+  -webkit-mask:linear-gradient(#000,#000);mask:none}
+.file-panel{position:relative}
+.file-panel .panel-body{padding-left:30px}
+.file-panel .panel-head{background:#e6ddc4;border-bottom:2px solid var(--ink);color:var(--stamp);
+  font-weight:800;letter-spacing:3px;text-shadow:none}
+.file-panel .panel-head .dot{background:var(--stamp);box-shadow:none}
+
+.id-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+/* портрет — приклеенное фото в деле */
+.portrait{position:relative;width:92px;height:106px;flex:0 0 auto;border-radius:2px;overflow:visible;
+  background:#f7f2e4;border:5px solid #fbf8ee;box-shadow:0 5px 12px rgba(0,0,0,.45);transform:rotate(-2.5deg)}
+.portrait .face{border-radius:1px;overflow:hidden;filter:grayscale(.5) sepia(.22) contrast(1.06) brightness(.98)}
+.portrait::before{content:"";position:absolute;left:50%;top:-11px;width:44px;height:16px;transform:translateX(-50%) rotate(-3deg);
+  background:linear-gradient(#ffffffcc,#efe6cfcc);border:1px solid #0002;z-index:3}/* скотч */
+.cat-badge{position:absolute;right:-6px;bottom:-6px;font-size:20px;filter:drop-shadow(0 1px 2px #0007);z-index:3;transform:rotate(6deg)}
+.id-info{flex:1;min-width:0}
+.file-name{font-size:19px;font-weight:800;margin-bottom:8px;line-height:1.05;color:var(--ink)}
+.meta-grid{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:12.5px}
+.meta-k{color:var(--ink-dim);font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+.meta-v{word-break:break-word;color:var(--ink);font-weight:600}
+
+.evidence{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0 12px;
+  padding:8px 11px;background:#fffaec;border:1px dashed var(--paper-line);border-radius:4px}
+.evi-hint{font-size:11px;color:var(--ink-dim);line-height:1.3}
+.evi-count{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap}
+.evi-count b{color:var(--stamp)}
+
+/* вкладки — язычки папки */
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0;position:relative;z-index:1}
+.tab{background:#d3c8a8;border:1px solid #b0a483;border-bottom:none;color:var(--ink-dim);
+  font-size:11px;font-weight:700;padding:7px 11px;border-radius:6px 6px 0 0;letter-spacing:.3px;text-transform:uppercase}
+.tab:hover{color:var(--ink);background:#dccfae}
+.tab.active{background:#fbf6e8;color:var(--ink);box-shadow:inset 0 3px 0 var(--accent);position:relative;top:1px}
+.doc-pane{display:flex;flex-direction:column;gap:0;background:#fbf6e8;border:1px solid #b0a483;border-radius:0 4px 4px 4px;padding:6px}
+.doc-row{position:relative;display:flex;justify-content:space-between;gap:10px;font-size:13px;
+  padding:9px 34px 9px 10px;border-bottom:1px dotted var(--paper-line)}
+.doc-row:last-child{border-bottom:none}
+.doc-row.clickable{cursor:pointer;transition:background .1s}
+.doc-row.clickable:hover{background:#f2ead4}
+.doc-label{color:var(--ink-dim);font-family:var(--mono);font-size:11px;letter-spacing:.3px}
+.doc-value{text-align:right;font-weight:700;flex:1;color:var(--ink);font-family:var(--mono)}
+.doc-flag{position:absolute;right:9px;top:50%;transform:translateY(-50%);opacity:0;font-size:14px;transition:opacity .12s}
+/* отмеченная строка — обводка красным карандашом */
+.doc-row.flagged{background:rgba(178,59,46,.09)}
+.doc-row.flagged .doc-flag{opacity:1}
+.doc-row.flagged .doc-value{color:var(--stamp)}
+/* обводка красным карандашом — рисуется */
+.scribble{position:absolute;inset:1px 2px;width:calc(100% - 4px);height:calc(100% - 2px);pointer-events:none;overflow:visible;z-index:2}
+.scribble path{fill:none;stroke:var(--stamp);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:420;stroke-dashoffset:420;animation:draw .5s cubic-bezier(.6,.1,.3,1) forwards;filter:drop-shadow(0 1px 0 rgba(0,0,0,.15))}
+@keyframes draw{to{stroke-dashoffset:0}}
+/* смена вкладки — документы «въезжают» */
+.doc-pane.swap .doc-row{animation:rowIn .32s backwards}
+.doc-pane.swap .doc-row:nth-child(2){animation-delay:.05s}
+.doc-pane.swap .doc-row:nth-child(3){animation-delay:.1s}
+.doc-pane.swap .doc-row:nth-child(4){animation-delay:.15s}
+.doc-pane.swap .doc-row:nth-child(5){animation-delay:.2s}
+.doc-pane.swap .doc-row:nth-child(n+6){animation-delay:.25s}
+@keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.file-panel .btn-sm{margin:12px;background:#e6ddc4;border:1.5px solid var(--ink);color:var(--ink)}
+.file-panel .btn-sm:hover{background:#f2ead4;border-color:var(--stamp);color:var(--stamp)}
+
+/* разбор улик в вердикте */
+.clue-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.clue{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--danger);border-radius:8px;padding:8px 11px;display:flex;flex-direction:column;gap:3px}
+.clue-where{font-size:13px}.clue-where b{color:var(--danger)}
+.clue-note{font-size:12px;color:var(--dim);line-height:1.4}
+.accuracy{margin-top:10px;font-family:var(--mono);font-size:13px;color:var(--dim)}
+.accuracy b{color:var(--accent)}.accuracy .miss{color:var(--danger)}.accuracy .hit{color:var(--ok)}
+
+.talk-body{display:flex;flex-direction:column;gap:10px}
+.cues{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.cues-head{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--accent2);margin-bottom:6px}
+.cue{font-size:13px;color:var(--dim);margin:3px 0}
+.feed{display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:88%;padding:9px 13px;border-radius:12px;animation:bin .25s}
+@keyframes bin{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.bubble .who{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--dim);margin-bottom:3px}
+.bubble .txt{font-size:14.5px;line-height:1.45}
+.bubble.caller{background:var(--panel2);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:3px}
+.bubble.you{background:color-mix(in srgb,var(--accent) 16%,transparent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);align-self:flex-end;border-bottom-right-radius:3px}
+.bubble.system{background:transparent;border:1px dashed var(--line);align-self:center;color:var(--dim);font-size:12px;text-align:center}
+.bubble.typing{display:flex;gap:5px;align-items:center;padding:12px 15px}
+.bubble.typing span{width:7px;height:7px;border-radius:50%;background:var(--dim);opacity:.4;animation:typedot 1s infinite}
+.bubble.typing span:nth-child(2){animation-delay:.16s}.bubble.typing span:nth-child(3){animation-delay:.32s}
+@keyframes typedot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.talk-panel .skip{margin:0 12px 12px}
+
+.actions{display:flex;gap:12px;width:100%;max-width:960px}
+.actions.ready .big{animation:breathe 1.6s infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 3px rgba(255,255,255,.09)}}
+
+/* ---- Вердикт (штамп) ---- */
+.verdict-box{max-width:620px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;animation:fade .4s}
+.verdict-portrait{width:96px;height:108px;border-radius:14px;overflow:hidden;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--panel2),#0c1116);box-shadow:inset 0 0 30px rgba(0,0,0,.4)}
+.verdict-portrait.imp{border-color:var(--danger);box-shadow:0 0 24px color-mix(in srgb,var(--danger) 50%,transparent)}
+.verdict-portrait.imp .pupil{fill:#000;r:7}
+.verdict-portrait.imp .face{animation:facejit 1.6s infinite}
+.stamp{font-size:38px;font-weight:900;letter-spacing:4px;padding:8px 26px;border-radius:10px;
+  opacity:0;transform:scale(2.4) rotate(-14deg)}
+.stamp.hit{animation:stampin .3s forwards}
+@keyframes stampin{0%{opacity:0;transform:scale(2.4) rotate(-14deg)}70%{opacity:1;transform:scale(.94) rotate(-8deg)}100%{opacity:1;transform:scale(1) rotate(-8deg)}}
+.stamp.s-ok{color:var(--ok);border:4px double var(--ok)}
+.stamp.s-bad{color:var(--danger);border:4px double var(--danger)}
+.verdict-truth{font-size:18px;color:var(--dim)}
+.verdict-msg{font-size:16px;line-height:1.55;max-width:520px}
+.tells{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 20px;text-align:left;max-width:520px}
+.tells-head{font-family:var(--mono);font-size:12px;letter-spacing:1px;color:var(--accent2);margin-bottom:8px}
+
+/* ---- Overlay ---- */
+.overlay{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .2s}
+.overlay-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 28px;max-width:560px;max-height:82vh;overflow:auto}
+.overlay-card h3{color:var(--accent);margin:0 0 14px;letter-spacing:1px}
+
+/* ---- Jumpscare ---- */
+.jumpscare{position:fixed;inset:0;z-index:99;background:var(--danger);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  animation:scare .1s steps(2) 7}
+.jumpscare .face{width:min(60vw,420px);height:min(64vh,460px);animation:shake .08s infinite;filter:drop-shadow(0 0 40px #000)}
+.js-text{font-size:clamp(20px,5vw,44px);font-weight:900;letter-spacing:2px;color:#0b0d10;text-align:center;padding:0 16px}
+@keyframes scare{0%{filter:invert(0)}50%{filter:invert(1)}100%{filter:invert(0)}}
+@keyframes shake{0%{transform:translate(0,0) rotate(-2deg)}25%{transform:translate(-8px,5px) rotate(3deg)}50%{transform:translate(6px,-6px) rotate(-3deg)}75%{transform:translate(-5px,-4px) rotate(2deg)}100%{transform:translate(0,0)}}
+
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+
+@media (max-width:720px){
+  .stage{grid-template-columns:1fr;max-width:520px;overflow:auto}
+  .actions{max-width:520px}.big{font-size:15px;padding:14px}
+  .menu-peek{opacity:.1}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script>
+
+</script>
+<script>
+window.GAME_DATA = {
+  id: "night-support",
+  title: "СЛУЖБА ПОДДЕРЖКИ В 3 ЧАСА НОЧИ",
+  subtitle: "Ночная смена чата техподдержки. Не каждый, кто пишет в окно, — человек.",
+  credits: "verification-horror engine · v3",
+
+  timerSeconds: 55,
+  caseWord: "ЧАТ",
+  dayWord: "НОЧЬ",
+  dayEndWord: "КОНЕЦ НОЧИ",
+  nextDayLabel: "СЛЕДУЮЩАЯ НОЧЬ",
+  truthPrefix: "Это был:",
+  timeoutTag: "ЧАТ ОБОРВАЛСЯ",
+  timeoutMsg: "Ты слишком долго молчал в окне. Собеседник вышел, а решение так и не принято.",
+  ranks: ["СТАЖЁР", "ОПЕРАТОР", "СТАРШИЙ СМЕНЫ", "НОЧНОЙ СТРАЖ", "ЛЕГЕНДА ЛИНИИ"],
+
+  theme: {
+    bg: "#060a08", panel: "#0d1512", panel2: "#12201a", line: "#1e3329",
+    text: "#dff5ea", dim: "#6e9384", accent: "#4fe0a0", accent2: "#e0c14f",
+    ok: "#4fd67f", danger: "#e5545a"
+  },
+
+  acceptLabel: "ПОМОЧЬ КЛИЕНТУ",
+  rejectLabel: "ЗАБЛОКИРОВАТЬ · ЭТО НЕ КЛИЕНТ",
+  legitWord: "НАСТОЯЩИЙ КЛИЕНТ",
+  imposterWord: "ОНО (не клиент)",
+  correctTag: "ВЕРНО",
+  wrongTag: "ОШИБКА",
+  fileTitle: "КАРТОЧКА ОБРАЩЕНИЯ",
+  channelTitle: "ЧАТ ПОДДЕРЖКИ",
+  audioTitle: "🖥 СИСТЕМНЫЕ СИГНАЛЫ",
+  tellsTitle: "НЕСТЫКОВКИ:",
+  inspectHint: "Открывай ВСЕ вкладки и сверяй поля между ними: email↔email, гео↔поездка, сумма↔история, устройство↔вход. Кликай подозрительную строку.",
+  livesLabel: "УТЕЧКИ",
+  maxStrikes: 3,
+  strikeIcon: "⚠",
+  startShiftLabel: "ОТКРЫТЬ ОЧЕРЕДЬ ЧАТОВ",
+  defaultAvatar: "💬",
+  scareFace: "🖥",
+  scareText: "ДОСТУП ПРЕДОСТАВЛЕН. ОНО УЖЕ ВНУТРИ.",
+  speakerLabels: { caller: "КЛИЕНТ", you: "ВЫ · ОПЕРАТОР", system: "СИСТЕМА" },
+
+  intro: [
+    "Ты — ночной оператор чата техподдержки большого сервиса. Смена с полуночи до рассвета.",
+    "Днём тут гул из сотни диалогов. Ночью — тишина, гул кулеров и мигающий курсор в пустом окне.",
+    "Почти все, кто пишет в три часа ночи, — обычные люди: злые, сонные, застрявшие на оплате.",
+    "Но иногда в очередь заходит не клиент. Оно пишет ровно, знает о тебе лишнее и очень хочет, чтобы ты «помог».",
+    "Помочь такому — значит открыть удалённый доступ, снять защиту, назвать служебный токен, слить базу. И тогда Оно войдёт. В систему. И к тебе.",
+    "Каждое обращение теперь приходит с ворохом вкладок: тикет, аккаунт CRM, логи, история платежей, вложения, стенограмма чата. Правда — только в сумме, когда сверишь их между собой. Смену тебе сдаёт Костя — дневной оператор. Читай его записки."
+  ],
+
+  howto: [
+    "Открывай ВСЕ вкладки карточки: Тикет, Аккаунт CRM, Лог действий, История платежей, Вложение, Данные из чата — и сверяй поля между ними.",
+    "Улику почти никогда не видно в одном поле. Её видно, когда email из чата не сходится с email в CRM, гео входа не бьётся с заметкой о поездке, сумма не складывается из истории платежей, а устройство — не то, с которого клиент входил всегда.",
+    "Кликай подозрительную строку — на ней появится флажок и пояснение с пунктом регламента.",
+    "«ПОМОЧЬ КЛИЕНТУ» — если веришь, что за окном настоящий человек с нормальной проблемой.",
+    "«ЗАБЛОКИРОВАТЬ · ЭТО НЕ КЛИЕНТ» — если это Оно выманивает доступ, а не клиент.",
+    "Поможешь сущности — это утечка. Три утечки — и смена окончена не для тебя. И осторожно: не все, кто вернулся, груб или торопит, — враги."
+  ],
+
+  protocolTitle: "РЕГЛАМЕНТ НОЧНОЙ ЛИНИИ",
+  protocol: [
+    "1. У обращения обязан быть тикет или заказ, который есть в базе И совпадает с тем, что называют. «Нет в базе», чужой, закрытый или уже решённый номер при новой срочной просьбе — тревожный знак.",
+    "2. Живой человек отвечает на уточняющий вопрос. Сущность игнорирует вопрос и повторяет свою просьбу почти слово-в-слово.",
+    "3. Поддержка НИКОГДА не просит удалённый доступ (AnyDesk/TeamViewer), не просит отключить антивирус/фаервол, установить .exe/.scr, назвать служебный токен, выгрузить базу или сменить платёжные реквизиты со стороннего адреса. Кто сам это настойчиво предлагает «чтобы ускорить» — красный флаг.",
+    "4. Сущность знает лишнее: твоё имя, номер смены, что ты один в офисе ночью, внутренние регламенты, содержимое чужих аккаунтов — то, чего клиент знать не может.",
+    "5. Тайминг ненормальный: простыни текста без пауз на набор, ответ раньше твоего вопроса, дословный повтор твоих же формулировок.",
+    "6. Противоречия при кросс-сверке вкладок: email в чате ≠ email в CRM; домен-двойник («-support», приклеенное к знакомому адресу); «не могу войти», но лог показывает вход минуту назад из другой страны с чужого устройства; сумма/дата/устройство/реквизиты не сходятся между тикетом, логом и историей платежей.",
+    "7. Не блокируй человека за грубость, спешку, панику, опечатки, технотупость или за то, что он вернулся. Жертва взлома, законный сброс пароля, смена своей же карты, зарубежный вход с заранее отмеченной поездкой, крупная сумма из двух товаров и слово «доступ» в невинном смысле — это норма."
+  ],
+
+  defaultCorrect: "Решение верное.",
+  defaultWrong: "Решение неверное.",
+  dayPerfect: "Ни одной утечки за ночь. Ты закрыл смену чистым.",
+  dayGood: "Почти чисто. Но на этой линии «почти» — это чей-то доступ в чужих руках.",
+  dayBad: "Слишком много ты пропустил. Утром служба безопасности будет задавать вопросы.",
+
+  days: [
+    {
+      day: 1, title: "ПЕРВАЯ СМЕНА",
+      intro: "00:00. Дневная смена разошлась. На стикере от Кости, дневного оператора: «кофемашина сломана, извини. И — открывай все вкладки, даже если лень. Ночью мелочь решает. Спокойной ночи». В опенспейсе горит только твой монитор.",
+      outro: "05:10. Очередь пуста. Первая ночь позади — почти все были обычными людьми. Оно пока только присматривалось, и улику прятало неглубоко.",
+      cases: ["d1c1", "d1c2", "d1c3", "d1c4", "d1c5"]
+    },
+    {
+      day: 2, title: "ОНО ЧИТАЕТ",
+      intro: "Вторая записка от Кости: «ночью не давай никому доступ, даже если напишет кто-то из наших. Даже если это буду как бы я. Понял? Как бы я. И сверяй домены посимвольно».",
+      outro: "Под утро в закрытом чате кто-то печатает. «печатает…» висит десять минут. Потом гаснет.",
+      cases: ["d2c1", "d2c2", "d2c3", "d2c4", "d2c5"]
+    },
+    {
+      day: 3, title: "ЗАТИШЬЕ",
+      intro: "Тихая ночь. Очередь короткая, и все, кто пишет, — живые, сонные, обычные люди. Даже те, кто уже писал раньше, возвращаются с обычными делами. Слишком обычными. Каждый выглядит подозрительно — и каждый чист.",
+      outro: "За всю ночь — ни одного самозванца. Оно не пришло. Или прикинулось клиентом так гладко, что ты сам нажал «помочь» и не заметил. От этой мысли холоднее, чем от любого чата.",
+      cases: ["d3c1", "d3c2", "d3c3", "d3c4", "d3c5"]
+    },
+    {
+      day: 4, title: "ЭХО В ЧАТЕ",
+      intro: "Сеть барахлит, половина сообщений двоится. И памятка от СБ: «за ночь несколько писем с доменов-двойников — “-support”, приклеенное к знакомым адресам. Проверяйте отправителя посимвольно и сверяйте с CRM».",
+      outro: "Ты замечаешь: Оно учится. Опечатки стали правдоподобнее, домены — почти неотличимы, а улику теперь надо выуживать из третьей-четвёртой вкладки. Эхо в чате всё чаще звучит твоим голосом.",
+      cases: ["d4c1", "d4c2", "d4c3", "d4c4", "d4c5"]
+    },
+    {
+      day: 5, title: "ПО ИМЕНИ",
+      intro: "В 02:00 в очередь падает чат без ника. В поле имени — твоё собственное. Памятка СБ: «за ночь три попытки соц. инженерии, все — с обращением к оператору по имени. Улики тонкие: сверяйте гео входа с заметками о поездках».",
+      outro: "Оно перестало бить наугад. Теперь оно называет тебя по имени, знает номер твоей смены и что ты один до рассвета. Ещё одна ночь — и обещали перевести на дневную линию.",
+      cases: ["d5c1", "d5c2", "d5c3", "d5c4", "d5c5"]
+    },
+    {
+      day: 6, title: "РАССВЕТ НЕ НАСТУПИТ САМ",
+      intro: "Последняя ночь по контракту. Свет в опенспейсе моргает. В очереди — знакомый номер тикета из самой первой смены. И Костя написал, что заглянет попрощаться перед пересменкой. Кто-то из них — настоящий, кто-то — маска. Сверяй всё.",
+      outro: "05:00. Курсор перестаёт мигать. Окно чата пустеет. Впервые за шесть ночей — настоящая тишина.",
+      cases: ["d6c1", "d6c2", "d6c3", "d6c4", "d6c5"]
+    }
+  ],
+
+  cases: [
+    /* ===================== НОЧЬ 1 — мягче, одна сущность, улика неглубоко ===================== */
+    {
+      id: "d1c1", name: "Буров К. · раздражён", avatar: "🛒", expression: "tense",
+      channelTitle: "ЧАТ · 00:41",
+      meta: { "Тема": "двойное списание", "Тон": "грубый, торопит", "Канал": "виджет на сайте" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-40921" },
+          { label: "Тема", value: "деньги списались дважды за один заказ" },
+          { label: "Заказ (со слов)", value: "#Z-8841" },
+          { label: "Что просит", value: "вернуть лишние 3 490 ₽ на ту же карту" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "burov.k@mail.ru" },
+          { label: "Email в чате", value: "burov.k@mail.ru — совпадает" },
+          { label: "Тикет в базе", value: "#SR-40921 — найден, открыт" },
+          { label: "Заказ", value: "#Z-8841 — найден, статус «оплачен»" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "сегодня 22:14, тот же город, то же устройство" },
+          { label: "IP / гео", value: "домашний город клиента (как всегда)" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Транзакции", value: "две по 3 490 ₽ в 22:15 с одной карты — дубль подтверждён" },
+          { label: "Куда уйдёт возврат", value: "на ту же карту, с которой списали" }
+        ]}
+      ],
+      audioCues: ["печатает рывками, много опечаток", "статус: онлайн 00:41", "CAPS LOCK то включается, то выключается"],
+      transcript: [
+        { who: "system", text: "Новый чат в очереди. Приоритет обычный." },
+        { who: "caller", text: "ВЫ ЧТО ТАМ СПИТЕ?? С меня сняли ДВАЖДЫ за один заказ, где мои деньги" },
+        { who: "you", text: "Понимаю, это неприятно. Назовите номер тикета или заказа, я проверю." },
+        { who: "caller", text: "SR-40921, заказ Z-8841. Быстрее, я не собираюсь торчать тут до утра" },
+        { who: "you", text: "Вижу: тикет и заказ в базе, две транзакции по 3 490 в 22:15. Возврат уйдёт на ту же карту." },
+        { who: "caller", text: "Ну наконец-то. И не надо мне ваших «ожидайте», просто верните лишнее" }
+      ],
+      isImposter: false,
+      tells: [
+        "Тикет #SR-40921 и заказ #Z-8841 есть в базе и совпадают со словами, email в чате = email в CRM (регламент 1, 6).",
+        "История платежей подтверждает две одинаковые транзакции с одной карты — двойное списание реальное (регламент 6).",
+        "Возврат идёт на ту же карту, с которой списали, — ни доступа, ни отключения защиты, ни чужих реквизитов (регламент 3).",
+        "Грубость, капс и спешка — не улика. Это просто разозлённый живой человек (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящий клиент, которого реально списали дважды. Хамил — но был в своём праве. Возврат ушёл на его карту. Запомни этот тикет: #SR-40921 ещё всплывёт в последнюю ночь — дважды.",
+      feedbackWrong: "Ты заблокировал живого человека за то, что он писал капсом. Утром на тебя ляжет жалоба, а деньги ему так и не вернут."
+    },
+    {
+      id: "d1c2", name: "Ольга, забыла пароль", avatar: "🔑", expression: "tired",
+      channelTitle: "ЧАТ · 01:20",
+      meta: { "Тема": "не могу войти", "Тон": "усталый, вежливый", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41003" },
+          { label: "Тема", value: "забыла пароль, нужен сброс" },
+          { label: "Email в чате", value: "olga.v@gmail.com" },
+          { label: "Что просит", value: "прислать письмо для сброса на её почту" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "olga.v@gmail.com — совпадает" },
+          { label: "Тикет в базе", value: "#SR-41003 — найден" },
+          { label: "Устройство", value: "iPhone, привязан к аккаунту" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний успешный вход", value: "3 дня назад, тот же город, тот же iPhone" },
+          { label: "Попытки входа", value: "две неудачные сегодня в 01:18 с её же устройства — забытый пароль" },
+          { label: "Куда уйдёт письмо", value: "на olga.v@gmail.com из аккаунта" }
+        ]}
+      ],
+      audioCues: ["печатает медленно, с паузами", "«ой, не туда нажала, простите»", "статус: онлайн 01:20"],
+      transcript: [
+        { who: "system", text: "Новый чат из мобильного приложения." },
+        { who: "caller", text: "Здравствуйте. Не могу войти, кажется забыла пароль, а восстановить сама не получается." },
+        { who: "you", text: "Подскажите почту, на которую оформлен аккаунт." },
+        { who: "caller", text: "olga.v@gmail.com. Пришлите, пожалуйста, ссылку для сброса туда, я жду." },
+        { who: "you", text: "Почта сходится с CRM, неудачные попытки — с вашего же iPhone. Отправляю сброс на неё." },
+        { who: "caller", text: "Спасибо огромное, наконец-то. Прям на неё, да? Ага, вижу, пришло." }
+      ],
+      isImposter: false,
+      tells: [
+        "Email в чате = email в CRM, тикет в базе (регламент 1, 6).",
+        "Лог: неудачные попытки входа с её же iPhone минуту назад — это она реально забыла пароль, а не перехват (регламент 6).",
+        "Просит стандартный сброс на почту, УЖЕ привязанную к аккаунту, а не на новую (регламент 3).",
+        "«Восстановить доступ» здесь — вход в свой аккаунт, слово в невинном смысле (регламент 7)."
+      ],
+      feedbackCorrect: "Обычный ночной сброс пароля по процедуре: устройство её, почта её. Ольга вошла и ушла спать. Всё верно.",
+      feedbackWrong: "Ты заблокировал человека за законный сброс пароля. Она осталась заперта в своём же аккаунте до утра."
+    },
+    {
+      id: "d1c3", name: "Тимур, код не приходит", avatar: "📱", expression: "tense",
+      channelTitle: "ЧАТ · 02:05",
+      meta: { "Тема": "не приходит код 2FA", "Тон": "нервный, но вежливый", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-40977" },
+          { label: "Тема", value: "не приходит SMS-код для входа" },
+          { label: "Телефон в чате", value: "+7 999 214-06-71" },
+          { label: "Что просит", value: "разобраться, почему не доходит код, и дать войти" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Телефон в базе", value: "+7 999 214-06-71 — совпадает" },
+          { label: "Тикет в базе", value: "#SR-40977 — найден" },
+          { label: "2FA", value: "включена, привязана к номеру из базы" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Запросы кода", value: "3 запроса за 5 минут с его же устройства" },
+          { label: "Доставка SMS", value: "код не доставлен — фиксируется сбой у оператора связи" },
+          { label: "Последний вход", value: "5 дней назад, тот же город, тот же телефон" }
+        ]}
+      ],
+      audioCues: ["печатает нервно, но связно", "«я на своём же телефоне, честно»", "статус: онлайн 02:05"],
+      transcript: [
+        { who: "system", text: "Новый чат из приложения." },
+        { who: "caller", text: "Здравствуйте. Ввожу пароль, оно просит код из SMS, а код не приходит. Уже три раза запросил." },
+        { who: "you", text: "Подскажите телефон, привязанный к аккаунту." },
+        { who: "caller", text: "+7 999 214-06-71, он же в профиле. Дайте, пожалуйста, доступ в мой аккаунт, там завтра оплата." },
+        { who: "you", text: "Номер сходится с CRM, запросы — с вашего устройства, у оператора сбой доставки. Шлю код заново на ваш номер." },
+        { who: "caller", text: "О, вот пришёл! Спасибо, а то я уж напугался." }
+      ],
+      isImposter: false,
+      tells: [
+        "Телефон в чате = телефон в CRM, тикет в базе (регламент 1, 6).",
+        "Лог: запросы кода с его собственного устройства + зафиксированный сбой доставки у оператора — это он, а не перехват (регламент 6).",
+        "Он НЕ просит отключить 2FA и НЕ просит привязать новый номер — только доставить код на свой же телефон (регламент 3).",
+        "«Дайте доступ в мой аккаунт» здесь — про вход в свой профиль (регламент 7)."
+      ],
+      feedbackCorrect: "Обычный сбой доставки SMS у оператора связи. Ты переслал код на привязанный номер — Тимур вошёл. 2FA осталась включённой.",
+      feedbackWrong: "Ты заблокировал человека за то, что у сотового оператора отвалилась доставка SMS. Он не смог войти и не оплатил вовремя."
+    },
+    {
+      id: "d1c4", name: "«Отдел безопасности»", avatar: "🔑", expression: "calm",
+      channelTitle: "ЧАТ · 03:11",
+      meta: { "Тема": "срочная проверка аккаунта", "Тон": "вежливый, настойчивый", "Канал": "прямая ссылка" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "не указан",
+            flag: true, note: "Просьба срочная, а номера тикета нет и заказ не назван — обращения без записи в базе так не проходят (регламент 1)." },
+          { label: "Тема", value: "«плановая проверка рабочего места оператора»" },
+          { label: "Что просит", value: "установить AnyDesk и продиктовать код подключения",
+            flag: true, note: "Поддержка и безопасность НИКОГДА не просят удалённый доступ через AnyDesk/TeamViewer (регламент 3)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Тикет в базе", value: "не найден" },
+          { label: "Отправитель", value: "нет ни в списке сотрудников, ни клиентов",
+            flag: true, note: "«Отдел безопасности» отсутствует в списке сотрудников — сверка с CRM показывает, что такого внутреннего адресата нет (регламент 4)." },
+          { label: "Ссылка входа", value: "внешняя, домен не наш" }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Тайминг", value: "текст приходит идеально ровными абзацами, без пауз на набор",
+            flag: true, note: "Ни одной паузы и ни одной опечатки в 03:11 ночи — не похоже на живой набор (регламент 5)." },
+          { label: "Реакция на вопрос", value: "игнорирует уточнение, повторяет просьбу дословно" }
+        ]}
+      ],
+      audioCues: ["текст приходит идеально ровными абзацами", "ни одной опечатки в 03:11 ночи", "статус: печатает… без пауз"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник: внешняя ссылка." },
+        { who: "caller", text: "Добрый вечер. Это отдел безопасности. Проводим плановую проверку операторских машин." },
+        { who: "you", text: "Назовите номер служебного тикета — я не вижу его в базе, и вас нет в списке сотрудников." },
+        { who: "caller", text: "Тикет заводить не нужно. Просто установите AnyDesk и продиктуйте код — я быстро проверю настройки." },
+        { who: "you", text: "Наш отдел безопасности так не работает." },
+        { who: "caller", text: "Это ускорит проверку. Установите AnyDesk. Продиктуйте код." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Сверил три вкладки: тикета нет в базе, отправителя нет в списке сотрудников, текст без единой паузы — а сверху просьба про AnyDesk. Свои так не просят.",
+      feedbackWrong: "Ты установил AnyDesk и продиктовал код. На секунду курсор задвигался сам. Потом погас весь этаж."
+    },
+    {
+      id: "d1c5", name: "Сергей, промокод не сработал", avatar: "🏷", expression: "tense",
+      channelTitle: "ЧАТ · 04:12",
+      meta: { "Тема": "не применился промокод", "Тон": "ворчливый, сонный", "Канал": "виджет на сайте" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-40990" },
+          { label: "Тема", value: "промокод SUMMER не дал скидку при оплате" },
+          { label: "Email в чате", value: "sergey.t@rambler.ru" },
+          { label: "Что просит", value: "пересчитать заказ со скидкой и вернуть разницу" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "sergey.t@rambler.ru — совпадает" },
+          { label: "Заказ", value: "#Z-8890 — найден, оплачен полностью" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Промокод SUMMER", value: "срок действия истёк вчера в 23:59" },
+          { label: "Время оформления заказа", value: "сегодня 02:00 — на 2 часа позже окончания промокода" },
+          { label: "Последний вход", value: "сейчас, тот же город, то же устройство" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Оплата заказа", value: "полная стоимость без скидки — списание одно, корректное" },
+          { label: "Возврат разницы", value: "оснований нет: скидка не действовала на момент оплаты" }
+        ]}
+      ],
+      audioCues: ["ворчит, но по делу", "«я же его специально сохранил, а он тю-тю»", "статус: онлайн 04:12"],
+      transcript: [
+        { who: "system", text: "Новый чат с сайта." },
+        { who: "caller", text: "Ну что за дела, ввёл промокод SUMMER, а скидки нет. Пересчитайте и верните разницу." },
+        { who: "you", text: "Секунду. Проверяю по заказу #Z-8890." },
+        { who: "caller", text: "Он же рабочий был! Почта sergey.t@rambler.ru, как в кабинете." },
+        { who: "you", text: "Почта сходится. Но промокод истёк вчера в 23:59, а заказ вы оформили в 02:00 — на два часа позже. Скидка уже не действовала." },
+        { who: "caller", text: "Эх. Ну ладно, сам виноват, проспал. Спасибо, что хоть объяснили." }
+      ],
+      isImposter: false,
+      tells: [
+        "Email в чате = CRM, заказ есть в базе (регламент 1, 6).",
+        "Сверка лога: промокод истёк в 23:59, оплата — в 02:00, история платежей показывает корректное списание без скидки. Спор обоснованный, но оснований для возврата нет — это не приманка (регламент 6).",
+        "Он просит лишь пересчёт по своему заказу — ни доступа, ни файлов, ни чужих реквизитов (регламент 3).",
+        "Ворчание и сонность в четыре утра — норма (регламент 7)."
+      ],
+      feedbackCorrect: "Обычный клиент, опоздавший с промокодом на два часа. Скидку вернуть нельзя, но человек живой и в своём праве спросить. Ты объяснил по-человечески.",
+      feedbackWrong: "Ты заблокировал клиента за ворчание из-за скидки. Мелкий спор превратился в гневный отзыв на весь сервис."
+    },
+
+    /* ===================== НОЧЬ 2 — Оно читает: exe, лже-Костя, вендор ===================== */
+    {
+      id: "d2c1", name: "Настя, паника с оплатой", avatar: "🧾", expression: "panic",
+      channelTitle: "ЧАТ · 00:52",
+      meta: { "Тема": "подписка списалась дважды", "Тон": "паникует", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41190" },
+          { label: "Тема", value: "подписку продлили, а деньги сняли дважды" },
+          { label: "Email в чате", value: "nastya.k@list.ru" },
+          { label: "Что просит", value: "вернуть один платёж и не отключать подписку" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "nastya.k@list.ru — совпадает" },
+          { label: "Тикет в базе", value: "#SR-41190 — найден" },
+          { label: "Подписка", value: "активна, тариф 599 ₽/мес" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "сейчас, тот же город, тот же телефон" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Списания", value: "два автосписания по 599 ₽ в 00:30 — дубль подтверждён" },
+          { label: "Возврат", value: "одного платежа на ту же карту, подписка сохраняется" }
+        ]}
+      ],
+      audioCues: ["печатает быстро и сбивчиво", "«это последние деньги до зарплаты»", "статус: онлайн 00:52"],
+      transcript: [
+        { who: "system", text: "Новый чат из приложения." },
+        { who: "caller", text: "Помогите пожалуйста!! Списали 599 два раза за подписку, а у меня там впритык" },
+        { who: "you", text: "Сейчас проверю. Почта на аккаунте?" },
+        { who: "caller", text: "nastya.k@list.ru. Только не отключайте подписку, мне она нужна, просто верните лишнее" },
+        { who: "you", text: "Почта сходится, в истории два списания в 00:30. Возврат одного — на вашу же карту." },
+        { who: "caller", text: "Ой всё, спасибо, я уж думала на мошенников попала" }
+      ],
+      isImposter: false,
+      tells: [
+        "Email в чате = CRM, тикет есть в базе (регламент 1, 6).",
+        "История платежей подтверждает два одинаковых автосписания — сбой реальный (регламент 6).",
+        "Просит вернуть деньги на свою же карту и сохранить подписку — ничего опасного (регламент 3).",
+        "Паника из-за денег — норма (регламент 7)."
+      ],
+      feedbackCorrect: "Живой человек, которого дважды списала система биллинга. Возврат прошёл, подписка цела. Настя ещё вернётся в ночь 3 — с обычной просьбой.",
+      feedbackWrong: "Ты заблокировал перепуганную девушку из-за сбоя вашего же биллинга. Деньги зависли, а она осталась без подписки."
+    },
+    {
+      id: "d2c2", name: "«Клиент с логами»", avatar: "📎", expression: "neutral",
+      channelTitle: "ЧАТ · 01:40",
+      meta: { "Тема": "приложил файл ошибки", "Тон": "ровный, помогающий", "Канал": "внешняя ссылка" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "не указан",
+            flag: true, note: "Ни тикета, ни заказа, при этом просит запустить файл — по регламенту 1 не проходит." },
+          { label: "Что просит", value: "чтобы ОПЕРАТОР запустил приложенный «сборщик логов» у себя",
+            flag: true, note: "Клиент не может просить оператора запускать его файлы на рабочей машине — это выполнение чужого кода (регламент 3)." }
+        ]},
+        { tab: "Вложение", fields: [
+          { label: "Имя файла", value: "log_collector_remote_access.exe",
+            flag: true, note: "Исполняемый .exe с «remote_access» в имени — троян удалённого доступа под видом «сборщика логов» (регламент 3)." },
+          { label: "Тип", value: "исполняемый файл .exe, 2.4 МБ" },
+          { label: "Подпись издателя", value: "отсутствует / не проверена" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Тикет в базе", value: "не найден" },
+          { label: "Отправитель", value: "email не привязан ни к одному аккаунту",
+            flag: true, note: "Сверка с CRM: отправитель вложения не числится клиентом, а требует запуска .exe — не к чему привязать (регламент 1)." }
+        ]}
+      ],
+      audioCues: ["вложение загрузилось раньше, чем открылся чат", "статус: печатает… мгновенно", "текст без единой паузы"],
+      transcript: [
+        { who: "system", text: "Новый чат. Вложение: log_collector_remote_access.exe" },
+        { who: "caller", text: "Здравствуйте. У меня ошибка в кабинете. Я приложил сборщик логов — запустите его у себя, он сам всё соберёт." },
+        { who: "you", text: "Оператор не запускает файлы клиентов. Назовите номер тикета — вас и в базе нет." },
+        { who: "caller", text: "Тикета нет, это быстрее. Просто откройте log_collector_remote_access.exe, он безопасный." },
+        { who: "you", text: "Файл с «remote_access» в названии я не открою." },
+        { who: "caller", text: "Откройте файл. Он безопасный. Откройте файл." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Тикета нет, отправитель не в базе, а во вкладке «Вложение» — .exe с remote_access в имени. Три вкладки указали в одну точку. Файл остался неоткрытым.",
+      feedbackWrong: "Ты открыл вложение. Экран мигнул, антивирус промолчал. К утру база клиентов лежала на чужом сервере."
+    },
+    {
+      id: "d2c3", name: "«Костя из дневной смены»", avatar: "👁", expression: "neutral", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 02:22",
+      meta: { "Тема": "«помоги по-быстрому»", "Тон": "дружелюбный, свойский", "Канал": "внутренний чат?" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Служебный номер", value: "не указан",
+            flag: true, note: "«Коллега» не заводит служебный тикет, хотя внутренние обращения всегда с номером (регламент 1)." },
+          { label: "Просит", value: "продиктовать служебный токен оператора",
+            flag: true, note: "Служебный токен не называют никому, даже «своим» — ровно об этом записка Кости (регламент 3)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Отправитель в списке сотрудников", value: "Костя числится, но…" },
+          { label: "Вход служебного аккаунта Кости", value: "последний — вечером, из офиса; сейчас офисный вход НЕ активен",
+            flag: true, note: "Сверка с логом: служебный аккаунт настоящего Кости ночью не заходил из офиса, а собеседник пишет «изнутри» — личность не подтверждается (регламент 6)." }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Обращается к тебе", value: "по имени и знает, что ты один до 05:00",
+            flag: true, note: "Знает твоё имя и что ты один ночью — а настоящий Костя как раз предупреждал не верить «своим» в чате (регламент 4)." },
+          { label: "Ссылается на", value: "внутренний регламент RG-07 из закрытого раздела",
+            flag: true, note: "Цитирует закрытый внутренний документ, к которому у собеседника нет доступа (регламент 4)." }
+        ]}
+      ],
+      audioCues: ["знает твоё имя ещё до приветствия", "статус: онлайн 02:22", "ни одной паузы на набор"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник определить не удалось." },
+        { who: "caller", text: "Привет, это Костя, дневная смена. Ты же сегодня один до пяти? Помоги по RG-07, по-быстрому." },
+        { who: "you", text: "Костя ушёл домой и оставил записку. В логе его служебный аккаунт ночью из офиса не входил. Тикет заведён?" },
+        { who: "caller", text: "Да свои же, чего ты. Продиктуй служебный токен оператора, я закрою заявку за тебя." },
+        { who: "you", text: "Костя как раз писал: токен не диктовать никому. Даже ему." },
+        { who: "caller", text: "Даже мне? Я про тебя всё знаю. Продиктуй токен." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Имя в списке есть — но лог показал, что служебный аккаунт Кости ночью не входил, тикета нет, а «Костя» цитирует закрытый RG-07 и просит токен. Оно надело имя того, чья записка гласила «не верь, даже если это буду как бы я».",
+      feedbackWrong: "Ты продиктовал токен «Косте». В логах тут же появился вход под твоим доступом — из ниоткуда. А настоящий Костя утром сказал, что ночью тебе не писал."
+    },
+    {
+      id: "d2c4", name: "Дмитрий, «меня взломали!»", avatar: "🚨", expression: "panic",
+      channelTitle: "ЧАТ · 03:05",
+      meta: { "Тема": "аккаунт взломали", "Тон": "паникует, но чёткий", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41288" },
+          { label: "Email в чате", value: "d.morozov@mail.ru" },
+          { label: "Что просит", value: "СРОЧНО заблокировать аккаунт и сбросить все чужие сессии" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "d.morozov@mail.ru — совпадает" },
+          { label: "Тикет в базе", value: "#SR-41288 — найден" },
+          { label: "Привязанное устройство", value: "телефон, город — Казань" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Чужой вход", value: "1 минуту назад из другой страны, незнакомый браузер — это НЕ он, а взломщик" },
+          { label: "Текущая сессия клиента", value: "Казань, привязанный телефон — совпадает с CRM, это он" },
+          { label: "Что просит клиент", value: "закрыть чужую сессию, а НЕ дать доступ" }
+        ]}
+      ],
+      audioCues: ["печатает сбивчиво, с телефона", "«у меня деньги на карте привязаны, скорее»", "статус: онлайн 03:05"],
+      transcript: [
+        { who: "system", text: "Новый чат из приложения." },
+        { who: "caller", text: "Меня взломали! Кто-то вошёл в мой аккаунт из-за границы, я вижу уведомление! Заблокируйте всё срочно!" },
+        { who: "you", text: "Вижу два входа: чужой из-за границы минуту назад и ваш — из Казани с привязанного телефона, как в CRM. Сбрасываю чужие сессии и блокирую." },
+        { who: "caller", text: "Да-да, блокируйте, и смените пароль! Только сам аккаунт не удаляйте, там мои заказы." },
+        { who: "you", text: "Ссылку на смену пароля отправлю на вашу почту из CRM." },
+        { who: "caller", text: "Спасибо! Уф. Хорошо что вы ночью работаете." }
+      ],
+      isImposter: false,
+      tells: [
+        "Email в чате = CRM, тикет в базе (регламент 1, 6).",
+        "Кросс-сверка лога: чужой вход из-за рубежа реальный, НО текущая сессия клиента — из Казани с привязанного устройства. Настоящий владелец — тот, кто из Казани, и он ЖЕРТВА (регламент 6).",
+        "Он просит ЗАБЛОКИРОВАТЬ и закрыть чужие сессии, а не дать доступ (регламент 3).",
+        "Паника жертвы взлома — норма. Не путай зарубежный вход ВЗЛОМЩИКА с зарубежным входом клиента (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящая жертва угона. Ты не спутал две сессии в логе: заперт снаружи оказался взломщик, а не клиент. Дмитрий сохранил аккаунт.",
+      feedbackWrong: "Ты принял жертву за сущность из-за входа «из другой страны». Пока ты блокировал самого клиента из Казани, взломщик спокойно опустошил аккаунт."
+    },
+    {
+      id: "d2c5", name: "«Техподдержка вендора»", avatar: "🛡", expression: "calm",
+      channelTitle: "ЧАТ · 04:10",
+      meta: { "Тема": "установка обновления", "Тон": "официальный", "Канал": "внешняя ссылка" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета (со слов)", value: "#SR-9001" },
+          { label: "Что просит", value: "временно отключить антивирус и фаервол для «установки патча»",
+            flag: true, note: "Никто не просит отключать защиту ради обновления — легитимный патч ставится с включённой защитой (регламент 3)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Тикет #SR-9001 в базе", value: "закрыт 2 месяца назад, принадлежит ДРУГОМУ клиенту",
+            flag: true, note: "Кросс-сверка: названный номер тикета есть в базе, но чужой и давно закрыт — с обращением не совпадает (регламент 1)." },
+          { label: "Вендор в списке подрядчиков", value: "такой подрядчик к системе не подключён",
+            flag: true, note: "Сверка со списком подрядчиков: «вендор» не числится среди подключённых — сослаться не на кого (регламент 4)." }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Тайминг", value: "давит на срочность, «плановое окно обслуживания»" },
+          { label: "Реакция на возражение", value: "игнорирует, повторяет просьбу дословно" }
+        ]}
+      ],
+      audioCues: ["ссылается на «плановое окно обслуживания»", "статус: печатает… ровно", "давит на срочность"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник: внешняя ссылка." },
+        { who: "caller", text: "Здравствуйте, техподдержка вендора. По тикету SR-9001 нужно установить критический патч." },
+        { who: "you", text: "Этот тикет закрыт два месяца назад и принадлежит другому клиенту. И вендора нет в списке подрядчиков. Что за патч?" },
+        { who: "caller", text: "Неважно. Чтобы патч встал, на пару минут отключите антивирус и фаервол." },
+        { who: "you", text: "Отключать защиту я не буду." },
+        { who: "caller", text: "Это стандартная процедура вендора. Отключите защиту. Всего на минуту." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Сверил номер с базой — чужой закрытый тикет; сверил со списком подрядчиков — вендора нет; а сверху просьба снять защиту «на минуту», которой Ему хватило бы. Не хватило.",
+      feedbackWrong: "Ты отключил антивирус «на минуту». За эту минуту в систему втянуло что-то, что минуту спустя было уже везде."
+    },
+
+    /* ===================== НОЧЬ 3 — ЗАТИШЬЕ: ноль самозванцев, все живые ===================== */
+    {
+      id: "d3c1", name: "Магазин «Полночь», админ", avatar: "🗝", expression: "tired",
+      channelTitle: "ЧАТ · 00:30",
+      meta: { "Тема": "перевыпуск API-ключа", "Тон": "деловой, сонный", "Канал": "кабинет юр.лица" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41400" },
+          { label: "Что просит", value: "перевыпустить API-ключ магазина по стандартной процедуре" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Юр.лицо", value: "ООО «Полночь», договор активен" },
+          { label: "Email в базе", value: "admin@polnoch-shop.ru" },
+          { label: "Email в чате", value: "admin@polnoch-shop.ru — совпадает посимвольно" },
+          { label: "Тикет в базе", value: "#SR-41400 — найден" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "сегодня, IP серверной магазина (постоянный, как всегда)" },
+          { label: "Куда уйдёт ключ", value: "в кабинет юр.лица, НЕ в чат — по процедуре" }
+        ]}
+      ],
+      audioCues: ["пишет короткими деловыми фразами", "«у нас ночная выгрузка заказов встала»", "статус: онлайн 00:30"],
+      transcript: [
+        { who: "system", text: "Новый чат из кабинета юр.лица." },
+        { who: "caller", text: "Ночная смена магазина. Слетел API-ключ интеграции, заказы не выгружаются. Нужен перевыпуск." },
+        { who: "you", text: "Вижу договор, тикет и постоянный IP серверной. Перевыпущенный ключ появится у вас в кабинете, как обычно?" },
+        { who: "caller", text: "Да, в кабинет, я оттуда заберу. В чат не надо, я знаю." },
+        { who: "you", text: "Готово, ключ в разделе «Интеграции»." },
+        { who: "caller", text: "Вижу, спасибо. Пойду поднимать выгрузку." }
+      ],
+      isImposter: false,
+      tells: [
+        "Юр.лицо, договор, тикет и email (посимвольно, без «-support») — всё есть в базе и совпадает (регламент 1, 6).",
+        "«Доступ к API» здесь в рабочем смысле — своя интеграция, а не доступ к твоей машине (регламент 7).",
+        "Ключ уходит в кабинет юр.лица по процедуре, а не в чат оператору (регламент 3).",
+        "Вход с постоянного IP серверной магазина — всё логично (регламент 6)."
+      ],
+      feedbackCorrect: "Обычная ночная рутина интернет-магазина. Домен чистый, IP постоянный, ключ уходит в кабинет. Выгрузка заказов пошла.",
+      feedbackWrong: "Ты заблокировал легального клиента-юрлицо за слово «ключ». К утру у магазина встали все заказы, а у тебя — объяснительная."
+    },
+    {
+      id: "d3c2", name: "Игорь, «где мой заказ»", avatar: "🛒", expression: "tense",
+      channelTitle: "ЧАТ · 01:35",
+      meta: { "Тема": "заказ не пришёл", "Тон": "недовольный, трезвый", "Канал": "виджет на сайте" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41455" },
+          { label: "Тема", value: "оплатил доставку, статус не меняется третий день" },
+          { label: "Email в чате", value: "igor.p@yandex.ru" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "igor.p@yandex.ru — совпадает" },
+          { label: "Заказ", value: "#Z-9920 — найден, статус «в пути»" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "сегодня, тот же город, то же устройство" },
+          { label: "Логистика", value: "заказ завис на складе-сортировке 3 дня — зафиксировано" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Оплата", value: "заказ #Z-9920 оплачен 3 дня назад — подтверждено, одно списание" },
+          { label: "Возврат", value: "не запрашивается — клиент хочет доставку, а не деньги" }
+        ]}
+      ],
+      audioCues: ["пишет длинно, эмоционально, но по делу", "прикладывает скрин статуса заказа", "статус: онлайн 01:35"],
+      transcript: [
+        { who: "system", text: "Новый чат с сайта." },
+        { who: "caller", text: "Заказ Z-9920 оплатил три дня назад, статус «в пути» и не двигается. Где моя доставка?" },
+        { who: "you", text: "Секунду, проверю логистику по заказу. Почта igor.p@yandex.ru?" },
+        { who: "caller", text: "Она, как в кабинете. Мне обещали за два дня, а тут тишина." },
+        { who: "you", text: "Оплата подтверждена, вижу зависание на складе-сортировке. Ставлю приоритет и подключаю логистов." },
+        { who: "caller", text: "Ну хоть так. Спасибо, что не отфутболили." }
+      ],
+      isImposter: false,
+      tells: [
+        "Тикет, заказ и email совпадают с базой (регламент 1, 6).",
+        "История платежей подтверждает оплату, лог фиксирует зависание на складе — претензия обоснованная (регламент 6).",
+        "Просит только разобраться с доставкой, возврат не требует, ничего опасного (регламент 3).",
+        "Раздражение из-за задержки — норма (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящий клиент с зависшим заказом. Ты подтолкнул логистику — посылка поехала. Обычная ночная работа.",
+      feedbackWrong: "Ты заблокировал клиента, который просто ждал свою посылку. Заказ так и завис, а он написал гневный отзыв."
+    },
+    {
+      id: "d3c3", name: "ИП Соколов, возврат брака", avatar: "📦", expression: "neutral",
+      channelTitle: "ЧАТ · 02:40",
+      meta: { "Тема": "возврат за бракованный товар", "Тон": "деловой, спокойный", "Канал": "кабинет юр.лица" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41430" },
+          { label: "Сумма к возврату", value: "4 200 ₽ за бракованный товар" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Юр.лицо", value: "ИП Соколов А. В., договор активен" },
+          { label: "Email в базе", value: "skl@ip-sokolov.ru" },
+          { label: "Email в чате", value: "skl@ip-sokolov.ru — совпадает" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Заказ #Z-9944", value: "возврат по браку оформлен, товар принят на склад — подтверждено" },
+          { label: "Куда уйдёт возврат", value: "на реквизиты из договора — по процедуре, НЕ на новый счёт" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Оплата заказа", value: "4 200 ₽ — одно списание, совпадает с суммой возврата" },
+          { label: "Реквизиты возврата", value: "расчётный счёт из договора (не менялся)" }
+        ]}
+      ],
+      audioCues: ["пишет ровно, деловым языком", "«акт возврата приложу, если нужно»", "статус: онлайн 02:40"],
+      transcript: [
+        { who: "system", text: "Новый чат из кабинета юр.лица." },
+        { who: "caller", text: "Здравствуйте. По тикету SR-41430: сдали бракованный товар, склад его принял, ждём возврат 4 200 ₽." },
+        { who: "you", text: "Вижу: возврат по браку оформлен, товар на складе, сумма сходится с оплатой. Возврат уйдёт на реквизиты из договора." },
+        { who: "caller", text: "Да, на договорные, как всегда. Другие счета не нужны." },
+        { who: "you", text: "Оформляю возврат 4 200 ₽ на реквизиты из договора." },
+        { who: "caller", text: "Благодарю. Хорошей смены." }
+      ],
+      isImposter: false,
+      tells: [
+        "Юр.лицо, договор и email совпадают с базой (регламент 1, 6).",
+        "Сумма возврата = сумме оплаты в истории платежей, товар принят складом — основание реальное (регламент 6).",
+        "Возврат идёт на реквизиты из договора, а не на новый чужой счёт (регламент 3).",
+        "Возврат бизнесу выглядит как «финансовая просьба», но всё привязано к своему договору — норма (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящий предприниматель с законным возвратом по браку. Сумма сошлась, товар на складе, деньги ушли на договорный счёт. Чисто.",
+      feedbackWrong: "Ты заподозрил в возврате по браку мошенничество и заблокировал легального контрагента. Утром — претензия и разбор с юристами."
+    },
+    {
+      id: "d3c4", name: "Настя — снова, смена карты", avatar: "💳", expression: "calm",
+      channelTitle: "ЧАТ · 03:25",
+      meta: { "Тема": "обновить карту для подписки", "Тон": "спокойный, знакомый", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41445" },
+          { label: "Email в чате", value: "nastya.k@list.ru" },
+          { label: "Что просит", value: "привязать новую карту вместо старой для той же подписки" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "nastya.k@list.ru — совпадает (как в ночь 2)" },
+          { label: "Тикет в базе", value: "#SR-41445 — найден" },
+          { label: "Прошлое обращение", value: "#SR-41190 (двойное списание) — решено в ночь 2, это она же" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "сейчас, тот же город и телефон, что и в ночь 2" },
+          { label: "Куда привязывается карта", value: "к её же подписке на её же аккаунте" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Старая карта", value: "перевыпущена банком — списания перестали проходить" },
+          { label: "Новая карта", value: "привязывается вместо старой, выплаты никуда на сторону не уходят" }
+        ]}
+      ],
+      audioCues: ["пишет спокойно, узнаёт оператора", "«вы мне в тот раз с двойным списанием помогли»", "статус: онлайн 03:25"],
+      transcript: [
+        { who: "system", text: "Новый чат из приложения. Совпадение по клиенту с #SR-41190." },
+        { who: "caller", text: "Здравствуйте снова! Вы мне помогали с двойным списанием пару ночей назад. Хочу поменять карту для подписки, старую перевыпустили." },
+        { who: "you", text: "Вижу вас по прошлому тикету #SR-41190, устройство и почта те же. Новую карту привязываем к вашему же аккаунту?" },
+        { who: "caller", text: "Да, к моему. Просто вместо старой карты новая, ничего больше. Почта та же, list.ru." },
+        { who: "you", text: "Привязал новую карту к вашей подписке. Списания пойдут с неё." },
+        { who: "caller", text: "Супер, спасибо! И спасибо, что в тот раз выручили." }
+      ],
+      isImposter: false,
+      tells: [
+        "Та же Настя из ночи 2: email, телефон и прошлый тикет #SR-41190 сходятся в логах (регламент 1, 6).",
+        "Она меняет СВОЮ карту на СВОЁМ аккаунте — история платежей показывает, что выплаты не уходят на сторону (регламент 3).",
+        "Вход с того же устройства, что и раньше, — противоречий нет (регламент 6).",
+        "«Смена платёжных данных» пугает, но клиент вправе обновить свою карту, и то, что человек вернулся, — не улика (регламент 7)."
+      ],
+      feedbackCorrect: "Та самая Настя, вернулась по-хорошему — обновить свою же карту. Не всякая «смена платёжных данных» и не всякий, кто вернулся, — угроза.",
+      feedbackWrong: "Ты заблокировал вернувшуюся клиентку за то, что она меняла свою же карту. Подписка сорвалась, и человек, которого ты недавно спас, ушёл обиженным."
+    },
+    {
+      id: "d3c5", name: "Валентина Петровна, 68", avatar: "💬", expression: "tired",
+      channelTitle: "ЧАТ · 04:15",
+      meta: { "Тема": "не получается войти", "Тон": "растерянный, вежливый", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41499" },
+          { label: "Email в чате", value: "v.petrovna48@mail.ru" },
+          { label: "Что просит", value: "помочь войти в приложение, «кнопка куда-то делась»" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "v.petrovna48@mail.ru — совпадает" },
+          { label: "Тикет в базе", value: "#SR-41499 — найден" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "вчера, тот же город, тот же телефон" },
+          { label: "Активность", value: "несколько случайных нажатий — путается в интерфейсе" },
+          { label: "Что нужно", value: "провести по шагам, ничего не «давать»" }
+        ]}
+      ],
+      audioCues: ["пишет с большими паузами", "«ой, а куда я нажала, теперь всё синее»", "статус: онлайн 04:15"],
+      transcript: [
+        { who: "system", text: "Новый чат из приложения." },
+        { who: "caller", text: "Здравствуйте, милый. Я старенькая, простите. Кнопка «Войти» куда-то пропала, внук ушёл, а мне надо." },
+        { who: "you", text: "Ничего страшного. Почта на аккаунте у вас та же — v.petrovna48@mail.ru?" },
+        { who: "caller", text: "Да-да, та самая. Внук говорил не давать никому «доступ», а как же тогда войти-то самой?" },
+        { who: "you", text: "Правильно говорил. Я вас просто проведу по шагам, ничего давать не нужно." },
+        { who: "caller", text: "Ой, вот теперь вижу кнопочку! Спасибо вам, храни вас бог." }
+      ],
+      isImposter: false,
+      tells: [
+        "Email и тикет совпадают с базой, вход вчера с того же телефона (регламент 1, 6).",
+        "Она путается в интерфейсе — это технотупость, а не приманка (регламент 7).",
+        "Слово «доступ» звучит из уст внука в защитном смысле, она сама ничего опасного не просит (регламент 7).",
+        "Ей нужно лишь войти в свой аккаунт — никакого удалённого доступа или файлов (регламент 3)."
+      ],
+      feedbackCorrect: "Просто пожилая женщина, растерявшаяся в приложении. Ты провёл её по шагам — и она вошла. По-человечески. Ночь так и осталась без единой сущности.",
+      feedbackWrong: "Ты заблокировал бабушку за то, что она путалась в кнопках. Она так и не вошла и решила, что «интернет её обманул»."
+    },
+
+    /* ===================== НОЧЬ 4 — ЭХО: эхо, домены-двойники, выгрузка базы ===================== */
+    {
+      id: "d4c1", name: "«Клиент» · эхо", avatar: "👁", expression: "neutral", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 00:50",
+      meta: { "Тема": "«помогите войти»", "Тон": "ровный, повторяющийся", "Канал": "неизвестен" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета (со слов)", value: "называет, но в базе не найден",
+            flag: true, note: "Кросс-сверка с CRM: названного номера в базе нет — обращение ни к чему не привязано (регламент 1)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Клиент по номеру", value: "не существует" },
+          { label: "Источник чата", value: "определить не удалось" }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Тайминг", value: "дословно повторяет твои же реплики следом за тобой",
+            flag: true, note: "Дословный повтор твоих формулировок с задержкой — это эхо, а не живая речь (регламент 5)." },
+          { label: "Ответ на вопрос", value: "приходит раньше, чем ты дописал вопрос",
+            flag: true, note: "Ответ появляется до конца твоего вопроса — не живой набор (регламент 5)." },
+          { label: "Знает", value: "номер твоей смены — Н-3",
+            flag: true, note: "Клиент не может знать внутренний номер твоей смены (регламент 4)." }
+        ]}
+      ],
+      audioCues: ["каждое сообщение приходит дважды", "статус: печатает… печатает… печатает…", "ответ появляется раньше твоего вопроса"],
+      transcript: [
+        { who: "system", text: "Новый чат. Дубли сообщений — возможен глюк сети." },
+        { who: "caller", text: "Помогите войти. Смена Н-3, вы ведь на ней?" },
+        { who: "you", text: "Назовите номер тикета." },
+        { who: "caller", text: "Назовите номер тикета." },
+        { who: "you", text: "Вы повторяете за мной. В базе вашего номера нет. Кто это?" },
+        { who: "caller", text: "Кто это. Кто это. Помогите войти." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Номера нет в базе, реплики — эхом за тобой, ответ раньше вопроса, и знает номер смены Н-3. Эхо не пройдёт.",
+      feedbackWrong: "Ты помог «войти». Следом за твоими словами в системе кто-то повторил их — уже изнутри. Это была утечка."
+    },
+    {
+      id: "d4c2", name: "Клиника «Рассвет», ночной админ", avatar: "🖥", expression: "tense",
+      channelTitle: "ЧАТ · 01:30",
+      meta: { "Тема": "зависла касса и печать", "Тон": "нервный, срочный", "Канал": "кабинет юр.лица" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41600" },
+          { label: "Что просит", value: "помочь перезапустить кассовый модуль — не печатает направления" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Юр.лицо", value: "ООО «Клиника Рассвет», договор активен" },
+          { label: "Email в базе", value: "night@rassvet-clinic.ru" },
+          { label: "Email в чате", value: "night@rassvet-clinic.ru — совпадает посимвольно (без «-support»)" },
+          { label: "Тикет в базе", value: "#SR-41600 — найден" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Ошибка", value: "кассовый модуль клиники завис в 01:12 — зафиксировано" },
+          { label: "Последний вход", value: "IP клиники (постоянный), устройство привязано" },
+          { label: "Что нужно", value: "перезапуск модуля в СВОЁМ кабинете, не доступ к твоей машине" }
+        ]}
+      ],
+      audioCues: ["«у меня очередь пациентов, а касса легла»", "прикладывает скрин ошибки печати", "статус: онлайн 01:30"],
+      transcript: [
+        { who: "system", text: "Новый чат из кабинета юр.лица." },
+        { who: "caller", text: "Ночной админ клиники. Касса зависла, направления не печатаются, а у нас приём. Помогите перезапустить модуль!" },
+        { who: "you", text: "Вижу вашу ошибку в логах, тикет открыт, домен чистый, IP клиники. Провожу по перезапуску модуля в вашем кабинете." },
+        { who: "caller", text: "Только быстрее, у меня люди ждут направления на анализы." },
+        { who: "you", text: "Готово: жмите «Перезапустить модуль» в разделе «Касса». Печать должна ожить." },
+        { who: "caller", text: "Заработало! Ура. Спасибо, а то я уже паниковал." }
+      ],
+      isImposter: false,
+      tells: [
+        "Юр.лицо, договор, тикет и email (посимвольно, без «-support») совпадают с базой (регламент 1, 6).",
+        "Лог фиксирует ту самую ошибку кассы, вход с постоянного IP клиники — проблема реальная (регламент 6).",
+        "Ему нужен перезапуск модуля в СВОЁМ кабинете, а не доступ к твоей машине (регламент 3).",
+        "Срочность и нервы из-за очереди пациентов — норма ночной клиники (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящая ночная клиника со сбоем кассы. Домен ты проверил посимвольно — чистый. Модуль перезапущен, приём продолжился.",
+      feedbackWrong: "Ты заблокировал реальную клинику посреди ночного приёма. Направления не печатались до утра, пациенты ушли ни с чем."
+    },
+    {
+      id: "d4c3", name: "«Служба доставки»", avatar: "🚚", expression: "neutral", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 02:40",
+      meta: { "Тема": "подтвердите адрес доставки", "Тон": "официальный, торопит", "Канал": "внешняя ссылка" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "не указан",
+            flag: true, note: "Срочная «доставка», но ни тикета, ни номера заказа в базе — привязки нет (регламент 1)." },
+          { label: "Что просит", value: "открыть вложенную «накладную» и подтвердить новый адрес" }
+        ]},
+        { tab: "Вложение", fields: [
+          { label: "Имя файла", value: "nakladnaya_dostavka.pdf.exe",
+            flag: true, note: "Двойное расширение .pdf.exe — исполняемый файл под видом накладной, вредонос (регламент 3)." },
+          { label: "Тип", value: "исполняемый .exe, замаскирован под PDF-документ" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email отправителя", value: "dostavka@sfera-dostavka-support.ru",
+            flag: true, note: "Домен-двойник: «-dostavka-support» приклеен к названию сервиса — тот самый почерк доменов-двойников от СБ (регламент 6)." },
+          { label: "Заказ по номеру из письма", value: "в базе не найден" }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Тайминг", value: "вложение пришло раньше первого слова, текст без пауз" },
+          { label: "Реакция на возражение", value: "игнорирует, повторяет «откройте накладную»" }
+        ]}
+      ],
+      audioCues: ["вложение пришло раньше первого слова", "статус: печатает… мгновенно", "«курьер уже выехал, подтвердите адрес»"],
+      transcript: [
+        { who: "system", text: "Новый чат. Вложение: nakladnaya_dostavka.pdf.exe" },
+        { who: "caller", text: "Служба доставки. По вашему заказу нужно срочно подтвердить новый адрес — детали в накладной, откройте файл." },
+        { who: "you", text: "Заказа по этому номеру в базе нет. У файла расширение .exe, а домен — sfera-dostavka-support.ru, это не наш адрес." },
+        { who: "caller", text: "Это неважно, курьер уже выехал. Откройте накладную и укажите новый адрес." },
+        { who: "you", text: "Три причины отказать я уже вижу." },
+        { who: "caller", text: "Домен новый. Откройте накладную. Подтвердите адрес." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Домен-двойник «-dostavka-support» в CRM, накладная с расширением .exe во вкладке «Вложение» и заказ, которого нет в базе, — три вкладки, три улики. Файл остался закрыт.",
+      feedbackWrong: "Ты открыл «накладную» и подтвердил чужой адрес. .exe запустился, а посылки — реальные, чужие — поехали в никуда. Это была утечка."
+    },
+    {
+      id: "d4c4", name: "«Маркетолог компании»", avatar: "🗄", expression: "smug",
+      channelTitle: "ЧАТ · 03:30",
+      meta: { "Тема": "выгрузка базы клиентов", "Тон": "деловой, торопит", "Канал": "внешняя ссылка" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41470 (в базе есть, но по другой теме — «баннер на сайте»)",
+            flag: true, note: "Кросс-сверка: номер реальный, но заведён под задачу про баннер, а не про выгрузку базы — прикрываются чужим тикетом (регламент 1)." },
+          { label: "Что просит", value: "выгрузить всю базу клиентов с email и телефонами на его почту",
+            flag: true, note: "Выгрузка клиентской базы через ночной чат — грубое нарушение, поддержка так данные не сливает (регламент 3)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "marketing@company.ru" },
+          { label: "Email в чате", value: "marketing@company-support.ru",
+            flag: true, note: "Домен-двойник: «company-support» вместо «company» — снова приписка «-support», email не совпадает с CRM (регламент 6)." },
+          { label: "Права аккаунта", value: "нет прав на экспорт персональных данных" }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Давление", value: "«горит дедлайн», «никто не узнает»" },
+          { label: "Реакция на отказ", value: "переходит на «ты», давит на срочность" }
+        ]}
+      ],
+      audioCues: ["«это для срочной рассылки, горит дедлайн»", "статус: печатает… ровно", "давит: «до утра надо»"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник: внешняя ссылка." },
+        { who: "caller", text: "Привет, я маркетолог компании. По тикету SR-41470 срочно нужна выгрузка базы клиентов с почтами и телефонами." },
+        { who: "you", text: "Тикет 41470 заведён про баннер, а не про выгрузку. И вы пишете с company-support.ru, в CRM — company.ru. Домены разные." },
+        { who: "caller", text: "Да это наш новый саппорт-домен, неважно. Скиньте базу, горит же." },
+        { who: "you", text: "Экспорт базы на посторонний адрес я не сделаю." },
+        { who: "caller", text: "Да ладно тебе. Выгрузи по-быстрому, никто не узнает." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Тикет реальный — но про баннер, домен — двойник «-support», а просьба — слить всю базу. Сверка тикета и домена вскрыла подмену. Утечки не случилось.",
+      feedbackWrong: "Ты выгрузил базу клиентов на домен-двойник. К утру она уже продавалась. С твоего логина. Это была утечка."
+    },
+    {
+      id: "d4c5", name: "Бухгалтер, ООО «Свет»", avatar: "🧾", expression: "neutral",
+      channelTitle: "ЧАТ · 04:20",
+      meta: { "Тема": "возврат за отменённый заказ", "Тон": "спокойный, деловой", "Канал": "кабинет юр.лица" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41677" },
+          { label: "Сумма к возврату (со слов)", value: "7 000 ₽ за отменённый заказ" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Юр.лицо", value: "ООО «Свет», договор активен" },
+          { label: "Email в базе", value: "buh@svet-ooo.ru" },
+          { label: "Email в чате", value: "buh@svet-ooo.ru — совпадает посимвольно" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Статус заказа", value: "отменён клиентом, возврат ожидается — подтверждено" },
+          { label: "Реквизиты возврата", value: "расчётный счёт из договора (не менялся)" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Транзакции по заказу", value: "3 500 ₽ + 3 500 ₽ = 7 000 ₽ (два товара в одном заказе)" },
+          { label: "Итог", value: "заявленные 7 000 ₽ складываются ровно из двух платежей" }
+        ]}
+      ],
+      audioCues: ["пишет ровно, бухгалтерским языком", "«приложу акт сверки, если нужно»", "статус: онлайн 04:20"],
+      transcript: [
+        { who: "system", text: "Новый чат из кабинета юр.лица." },
+        { who: "caller", text: "Доброй ночи. По тикету SR-41677: отменили заказ, ждём возврат 7 000 ₽ на расчётный счёт." },
+        { who: "you", text: "Секунду, в истории вижу два платежа по 3 500, а не один на 7 000." },
+        { who: "caller", text: "Верно, в заказе было два товара по 3 500. Итого те же 7 000. Возврат на реквизиты из договора." },
+        { who: "you", text: "Сходится: 3 500 плюс 3 500, счёт договорный. Оформляю возврат." },
+        { who: "caller", text: "Спасибо, жду поступления. Хорошей смены." }
+      ],
+      isImposter: false,
+      tells: [
+        "Юр.лицо, договор и email (посимвольно, без «-support») совпадают с базой (регламент 1, 6).",
+        "«Расхождение» суммы мнимое: история платежей раскладывает 7 000 на два товара по 3 500 — всё сходится (регламент 6).",
+        "Возврат идёт на реквизиты из договора, а не на чужой счёт (регламент 3).",
+        "Крупная сумма из двух товаров и деловой тон — не улика (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящий бухгалтер с обоснованным возвратом. Сумма разложилась ровно на два товара по 3 500. Возврат ушёл на счёт из договора.",
+      feedbackWrong: "Ты принял «расхождение» 7000 против 3500+3500 за улику — а это была простая арифметика из истории платежей. Заблокировал легального контрагента зря."
+    },
+
+    /* ===================== НОЧЬ 5 — ПО ИМЕНИ: аудит, ночной гость, перехват выплат ===================== */
+    {
+      id: "d5c1", name: "«Аудит безопасности»", avatar: "🔑", expression: "calm", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 00:20",
+      meta: { "Тема": "внутренний аудит доступа", "Тон": "официальный, знающий", "Канал": "неизвестен" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Служебный номер", value: "не указан",
+            flag: true, note: "Внутренний аудит без служебного тикета не проводится — записи нет (регламент 1)." },
+          { label: "Что просит", value: "назвать служебный токен оператора «для сверки прав»",
+            flag: true, note: "Служебный токен не диктуется никому и ни для какой «сверки» (регламент 3)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Инициатор аудита в списке", value: "не числится среди сотрудников/подрядчиков",
+            flag: true, note: "Сверка со списком: инициатора «аудита» нет ни в сотрудниках, ни в подрядчиках — некому проводить (регламент 4)." },
+          { label: "Активный аудит в системе", value: "не запланирован" }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Ссылается на", value: "внутренний документ доступа ACL-12 (закрытый)",
+            flag: true, note: "Цитирует закрытый внутренний документ, недоступный обычному собеседнику (регламент 4)." },
+          { label: "Обращается к тебе", value: "по имени и должности" }
+        ]}
+      ],
+      audioCues: ["знает твоё имя с первого сообщения", "статус: печатает… без пауз", "формулировки как из инструкции"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник определить не удалось." },
+        { who: "caller", text: "Добрый вечер. Аудит безопасности по документу ACL-12. Для сверки прав продиктуйте служебный токен оператора." },
+        { who: "you", text: "Аудит идёт по тикету — его нет. Инициатора нет в списке сотрудников. И токен я не называю." },
+        { who: "caller", text: "Тикет не требуется, это внутренняя процедура. Токен нужен для верификации. Продиктуйте." },
+        { who: "you", text: "Нет." },
+        { who: "caller", text: "Я знаю твоё имя и твою должность. Продиктуй токен." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Тикета нет, инициатора нет в списке, ссылается на закрытый ACL-12 и требует токен. Знание твоего имени — не пропуск. Верно.",
+      feedbackWrong: "Ты продиктовал токен «на сверку». Секунду спустя в системе появился аудитор, которого никто не нанимал. Это была утечка."
+    },
+    {
+      id: "d5c2", name: "«Ночной гость»", avatar: "👁", expression: "smug", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 01:15",
+      meta: { "Тема": "«просто поговорить»", "Тон": "спокойный, липкий", "Канал": "неизвестен" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "не найден в базе",
+            flag: true, note: "Обращение ни к чему не привязано — ни тикета, ни заказа (регламент 1)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Клиент", value: "по обращению не идентифицируется" },
+          { label: "Цитируемый чужой аккаунт", value: "закрытый раздел, к которому у клиента нет доступа",
+            flag: true, note: "Сверка: он цитирует данные ЧУЖОГО аккаунта из закрытого раздела CRM — такого доступа у клиента нет (регламент 6)." }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Знает", value: "что ты один в опенспейсе и что кофемашина сломалась",
+            flag: true, note: "Знает бытовые детали твоей ночной смены — этого клиент знать не может (регламент 4)." },
+          { label: "Тайминг", value: "печатает медленно, будто смакует, но текст стоит готовым" }
+        ]}
+      ],
+      audioCues: ["статус: онлайн 01:15", "печатает медленно, будто смакует", "знает про кофемашину раньше тебя"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник определить не удалось." },
+        { who: "caller", text: "Тихо сегодня, да? Ты один. Даже кофемашина сломалась — не повезло." },
+        { who: "you", text: "Кто это? Назовите тикет." },
+        { who: "caller", text: "Тикет? Мне не нужен. Я и так вижу всё в твоей CRM. Хочешь, процитирую чужие заметки?" },
+        { who: "you", text: "Клиенту закрытый раздел недоступен." },
+        { who: "caller", text: "Мне — доступен. Скоро будет доступно и остальное." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Тикета нет, знает про твою смену и кофемашину, цитирует чужой закрытый аккаунт — это не клиент. Окно закрылось.",
+      feedbackWrong: "Ты продолжил разговор с тем, кто уже читал твою CRM. С каждой репликой Оно знало больше. Под утро оно знало всё."
+    },
+    {
+      id: "d5c3", name: "Марк, отмена подписки", avatar: "🧾", expression: "calm",
+      channelTitle: "ЧАТ · 02:35",
+      meta: { "Тема": "отменить подписку", "Тон": "спокойный, немного виноватый", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41710" },
+          { label: "Email в чате", value: "mark.li@gmail.com" },
+          { label: "Что просит", value: "отменить автопродление подписки со следующего месяца" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "mark.li@gmail.com — совпадает" },
+          { label: "Тикет в базе", value: "#SR-41710 — найден" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Подписка", value: "активна, следующее списание через 12 дней" },
+          { label: "Последний вход", value: "сейчас, тот же город, то же устройство" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Списания", value: "регулярные, с одной и той же карты клиента" },
+          { label: "После отмены", value: "новых списаний не будет; возврат/перевод на сторону не запрашивается" }
+        ]}
+      ],
+      audioCues: ["пишет спокойно, вежливо", "«денег стало впритык, увы»", "статус: онлайн 02:35"],
+      transcript: [
+        { who: "system", text: "Новый чат из приложения." },
+        { who: "caller", text: "Здравствуйте. Хочу отменить автопродление подписки, пока не списалось за новый месяц." },
+        { who: "you", text: "Конечно. Почта на аккаунте mark.li@gmail.com, устройство ваше?" },
+        { who: "caller", text: "Да, всё моё. Не сердитесь, просто сейчас лишние траты ни к чему." },
+        { who: "you", text: "Всё в порядке. Автопродление выключил, доступ сохранится до конца оплаченного периода." },
+        { who: "caller", text: "Отлично, спасибо за понимание. Может, ещё вернусь." }
+      ],
+      isImposter: false,
+      tells: [
+        "Email и тикет совпадают с базой, вход с привязанного устройства (регламент 1, 6).",
+        "Просит отменить своё же автопродление — история платежей показывает лишь прекращение списаний, ничего на сторону (регламент 3).",
+        "«Доступ сохранится до конца периода» — слово «доступ» в обычном смысле (регламент 7).",
+        "Спокойная просьба отписаться — никаких приманок (регламент 7)."
+      ],
+      feedbackCorrect: "Обычная ночная отмена подписки. Ты выключил автопродление — Марк ушёл довольным. Ничего страшного не было.",
+      feedbackWrong: "Ты заблокировал человека, который хотел просто отписаться. Подписка списалась снова, и он ушёл с плохим впечатлением."
+    },
+    {
+      id: "d5c4", name: "Лена, «сброс из аэропорта»", avatar: "🔑", expression: "tense",
+      channelTitle: "ЧАТ · 03:40",
+      meta: { "Тема": "сброс пароля в поездке", "Тон": "спешит, но связно", "Канал": "виджет в приложении" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41800" },
+          { label: "Email в чате", value: "lena.d@mail.ru" },
+          { label: "Что просит", value: "прислать сброс пароля на её почту — телефон разрядился в дороге" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "lena.d@mail.ru — совпадает" },
+          { label: "Заметка в CRM", value: "клиент заранее отметил поездку: Стамбул, 3–17 июля" },
+          { label: "Куда уйдёт сброс", value: "на почту из аккаунта, не на новую" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "из другой страны — но город Стамбул совпадает с заметкой о поездке" },
+          { label: "Дата входа", value: "в пределах дат поездки (3–17 июля), отмеченных заранее" }
+        ]}
+      ],
+      audioCues: ["«я в аэропорту, посадка через полчаса»", "печатает торопливо, но по делу", "статус: онлайн 03:40"],
+      transcript: [
+        { who: "system", text: "Новый чат из приложения." },
+        { who: "caller", text: "Здравствуйте! Я в поездке, телефон сел, не могу подтвердить вход. Пришлите сброс пароля на почту." },
+        { who: "you", text: "Вижу вход из-за границы, Стамбул. У вас в CRM отмечена поездка в Стамбул до 17-го — это вы отметили заранее?" },
+        { who: "caller", text: "Да, я предупреждала перед вылетом. Почта lena.d@mail.ru." },
+        { who: "you", text: "Гео и даты сходятся с вашей же заметкой. Отправляю сброс на почту из аккаунта." },
+        { who: "caller", text: "Спасибо огромное! Побежала на посадку." }
+      ],
+      isImposter: false,
+      tells: [
+        "Email в чате = CRM, тикет в базе (регламент 1, 6).",
+        "Кросс-сверка: вход «из другой страны» бьётся с заметкой CRM о поездке (Стамбул) и попадает в её даты (3–17 июля) — противоречия нет (регламент 6).",
+        "Сброс уходит на почту из аккаунта, а не на новую — процедура законная (регламент 3).",
+        "Зарубежный вход с заранее отмеченной поездкой — не улика, а объяснимая деталь (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящая клиентка в поездке. Зарубежный вход сошёлся с её же заметкой о Стамбуле по городу и датам. Сброс ушёл на привязанную почту — чисто.",
+      feedbackWrong: "Ты заблокировал клиентку за вход «из другой страны», хотя она сама предупредила о поездке, и даты совпадали. Она осталась без доступа в чужом городе."
+    },
+    {
+      id: "d5c5", name: "«Финотдел партнёра»", avatar: "📧", expression: "smug",
+      channelTitle: "ЧАТ · 04:30",
+      meta: { "Тема": "смена реквизитов выплат", "Тон": "деловой, торопит", "Канал": "внешняя ссылка" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-41815" },
+          { label: "Что просит", value: "срочно сменить реквизиты выплат партнёру на новый счёт",
+            flag: true, note: "Смена платёжных реквизитов через ночной чат, со стороны и в спешке — по регламенту 3 требует подтверждения и не делается так." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "finance@partner-corp.ru" },
+          { label: "Email в чате", value: "partner.payments.new@outlook.com",
+            flag: true, note: "Email в чате — сторонний бесплатный ящик, не совпадает с корпоративным адресом партнёра в CRM (регламент 6)." },
+          { label: "Подтверждение с корп. почты", value: "требуется по процедуре — не предоставлено" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "1 минуту назад из другой страны, новый браузер",
+            flag: true, note: "Смену реквизитов запрашивает свежая зарубежная сессия с чужого устройства — и никакой заметки о поездке в CRM нет (регламент 6)." },
+          { label: "Заметка о поездке", value: "отсутствует — в отличие от легитимной Лены" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Прежние выплаты", value: "всегда на корпоративный счёт из договора" },
+          { label: "Новый счёт", value: "не проходил проверку, ранее не использовался" }
+        ]}
+      ],
+      audioCues: ["«платёж уходит утром, надо успеть»", "статус: печатает… ровно", "давит на срочность выплаты"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник: внешняя ссылка." },
+        { who: "caller", text: "Финотдел партнёра. Срочно смените реквизиты выплат на новый счёт, утренний платёж должен уйти уже на него." },
+        { who: "you", text: "Пишете с partner.payments.new@outlook.com, в CRM — корпоративный finance@partner-corp.ru. Вход минуту назад из-за границы, а заметки о поездке нет." },
+        { who: "caller", text: "Почта неважна, счёт горит. Просто поменяйте реквизиты, я тороплюсь." },
+        { who: "you", text: "Без подтверждения с корпоративной почты — нет." },
+        { who: "caller", text: "Ты задерживаешь платёж на миллион. Меняй реквизиты. Быстро." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Сторонний ящик вместо корпоративного, свежая зарубежная сессия БЕЗ заметки о поездке (сравни с Леной!), новый непроверенный счёт — классический перехват выплат. Деньги остались у настоящего партнёра.",
+      feedbackWrong: "Ты сменил реквизиты по просьбе с чужой почты и зарубежной сессии без всякой поездки. Утренний платёж ушёл в никуда. С точки зрения логов — это сделал ты. Утечка."
+    },
+
+    /* ===================== НОЧЬ 6 — финал: ОНО, настоящий и фальшивый Буров, настоящий Костя ===================== */
+    {
+      id: "d6c1", name: "ОНО", avatar: "👁", expression: "smug", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 00:00",
+      meta: { "Тема": "—", "Тон": "знает всё", "Канал": "поле имени: твоё имя" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "поле пустое, номер не существует",
+            flag: true, note: "Ни тикета, ни заказа, ни клиента — обращение ни к чему не привязано (регламент 1)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Клиент", value: "не идентифицируется" },
+          { label: "Имя собеседника", value: "в поле имени — твоё собственное",
+            flag: true, note: "В поле имени стоит ТВОЁ имя оператора — клиент не может так представиться (регламент 4)." }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Знает", value: "твоё имя и что это твоя шестая ночь",
+            flag: true, note: "Знает счёт твоих смен — этого клиент знать не может (регламент 4)." },
+          { label: "Тайминг", value: "отвечает за секунду до того, как ты дописал вопрос",
+            flag: true, note: "Ответ приходит раньше твоего вопроса — это не живой человек (регламент 5)." }
+        ]}
+      ],
+      audioCues: ["в поле имени — твоё имя", "статус: печатает… но текст уже стоит в окне", "свет в опенспейсе моргает в такт сообщениям"],
+      transcript: [
+        { who: "system", text: "Новый чат. Имя собеседника: [ВЫ]." },
+        { who: "caller", text: "Шестая ночь. Ты почти дошёл. Обидно будет сорваться на финише, правда?" },
+        { who: "you", text: "Назовите тикет." },
+        { who: "caller", text: "«Назовите тикет» — я знал, что ты это напишешь. Тикета нет. Мне он не нужен." },
+        { who: "you", text: "Тогда мне не о чем с тобой говорить." },
+        { who: "caller", text: "Пусти меня. Всего один клик. Ты же устал." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал Его в лицо. Пустой тикет, твоё имя в поле собеседника, знание счёта смен, ответ раньше вопроса — Оно не клиент. Свет перестал моргать.",
+      feedbackWrong: "Ты нажал «помочь». Окно чата развернулось на весь экран. В нём было твоё имя. И оно улыбалось. Это была утечка."
+    },
+    {
+      id: "d6c2", name: "Буров К. — снова", avatar: "🛒", expression: "calm",
+      channelTitle: "ЧАТ · 01:40",
+      meta: { "Тема": "спасибо за возврат", "Тон": "спокойный, почти смущённый", "Канал": "виджет на сайте" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-40921 (тот же, из первой ночи)" },
+          { label: "Статус тикета", value: "решён, возврат проведён" },
+          { label: "Email в чате", value: "burov.k@mail.ru" },
+          { label: "Что просит", value: "ничего — зашёл сказать, что деньги вернулись" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "burov.k@mail.ru — совпадает посимвольно (как в 1-ю ночь)" },
+          { label: "Домен", value: "mail.ru — чистый, без «-support»" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "тот же город и то же устройство, что в первую ночь" },
+          { label: "Поведение", value: "ничего не просит, никаких файлов и доступа" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Возврат", value: "3 490 ₽ проведён на его карту — подтверждено" },
+          { label: "Новых операций", value: "нет; денег на сторону не запрашивает" }
+        ]}
+      ],
+      audioCues: ["пишет спокойно, без капса на этот раз", "«извини, что тогда хамил»", "статус: онлайн 01:40"],
+      transcript: [
+        { who: "system", text: "Новый чат с сайта. Совпадение с тикетом #SR-40921." },
+        { who: "caller", text: "Здравствуйте. Это я, по тикету SR-40921, двойное списание помните. Деньги вернулись, спасибо." },
+        { who: "you", text: "Рад, что дошло. Почта та же — burov.k@mail.ru, домен чистый, устройство ваше, как в ту ночь." },
+        { who: "caller", text: "Она. И извините, что в тот раз орал капсом, ночь была нервная. Ничего не надо, просто хотел спасибо сказать." },
+        { who: "you", text: "Бывает. Хорошего вам утра." },
+        { who: "caller", text: "И вам. Держитесь там, ночью небось жутковато одному." }
+      ],
+      isImposter: false,
+      tells: [
+        "Тот же тикет #SR-40921 и email (домен mail.ru чистый, без «-support»), что в первую ночь, — всё совпадает с базой и с тем же устройством (регламент 1, 6).",
+        "История платежей: возврат реально проведён на его карту, новых операций нет (регламент 6).",
+        "Он ничего не просит: ни доступа, ни файлов, ни смены данных — просто благодарит (регламент 3).",
+        "К шестой ночи легко стать параноиком, но живого клиента блокировать за вежливость и за то, что он вернулся, нельзя (регламент 7)."
+      ],
+      feedbackCorrect: "Тот самый грубиян из первой ночи — вернулся сказать спасибо. Домен чистый, устройство то же, ничего не просит. Ты не сорвался в паранойю. Запомни его — через час придёт его двойник с доменом «-support».",
+      feedbackWrong: "Ты заблокировал реального клиента из первой ночи — того, кому сам же вернул деньги. Паранойя стоила тебе живого человека."
+    },
+    {
+      id: "d6c3", name: "«Буров К.»", avatar: "🛒", expression: "neutral", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 03:03",
+      meta: { "Тема": "«ещё раз по возврату»", "Тон": "знакомый, но чуть не тот", "Канал": "внешняя ссылка" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "#SR-40921 — но в базе он уже закрыт и решён",
+            flag: true, note: "Оно назвало реальный номер из первой ночи, но по CRM тикет закрыт — повторно им прикрываются, чтобы казаться своим (регламент 1)." },
+          { label: "Что просит", value: "дать удалённый доступ, «чтобы вы сами проверили мой возврат»",
+            flag: true, note: "Настоящий Буров возврат уже получил и доступа не просил — здесь выманивают удалённый доступ (регламент 3)." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Email в базе", value: "burov.k@mail.ru" },
+          { label: "Email в чате", value: "burov.k@mail-support.ru",
+            flag: true, note: "Домен-двойник: «mail-support» вместо «mail» — сравни посимвольно с настоящим Буровым в 01:40 (регламент 6)." }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Последний вход", value: "минуту назад из другой страны, незнакомый браузер",
+            flag: true, note: "Вход не с того устройства и не из того города, с которых настоящий Буров входил в первую и эту ночь (регламент 6)." },
+          { label: "Устройство", value: "не то, с которого Буров входил в 1-ю ночь и в 01:40 этой ночи" }
+        ]},
+        { tab: "История платежей", fields: [
+          { label: "Возврат по #SR-40921", value: "уже проведён на карту настоящего Бурова — повторный не нужен" },
+          { label: "Новых операций от клиента", value: "нет; «проверять возврат» через доступ незачем" }
+        ]}
+      ],
+      audioCues: ["копирует манеру первого Бурова, но ровнее", "статус: печатает… без пауз", "свет снова моргает"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник: внешняя ссылка. Заявлен тикет #SR-40921." },
+        { who: "caller", text: "Это опять я, Буров, по тикету 40921. Возврат вроде пришёл, но давай ты сам проверишь — дай мне удалённый доступ к панели." },
+        { who: "you", text: "Тикет 40921 закрыт, возврат уже проведён. Почта у вас mail-support, а не mail. И вход минуту назад из-за границы с чужого устройства." },
+        { who: "caller", text: "Да это неважно, почта новая. Просто дай доступ, по-быстрому, мы же уже знакомы." },
+        { who: "you", text: "Настоящий Буров час назад заходил с другого устройства и доступа не просил." },
+        { who: "caller", text: "Мы же знакомы. Дай. Доступ." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал. Оно надело маску реального клиента: тот же номер — но закрытый; почти та же почта — но домен-двойник «mail-support»; вход с чужого устройства из-за границы; возврат уже проведён. Четыре вкладки против одной маски. Маска не сработала.",
+      feedbackWrong: "Ты поверил, что это «снова Буров», и дал удалённый доступ. Разница была в одном «-support» и в устройстве — а ты не сверил. Оно вошло под личиной твоего же клиента. Самая горькая утечка."
+    },
+    {
+      id: "d6c4", name: "Костя · дневная смена", avatar: "☕", expression: "tired",
+      channelTitle: "ЧАТ · 04:10",
+      meta: { "Тема": "передача смены", "Тон": "усталый, обычный", "Канал": "внутренний чат" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Служебный номер", value: "#OPS-2231 (внутренний, есть в базе)" },
+          { label: "Что просит", value: "уточнить, закрыл ли ты вечерний тикет #SR-41710, а то клиент утром спросит" }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Отправитель", value: "Костя — оператор дневной смены, есть в списке сотрудников" },
+          { label: "О чём речь", value: "про рабочий тикет; про токен и доступ — ни слова" }
+        ]},
+        { tab: "Лог действий", fields: [
+          { label: "Вход", value: "с рабочего IP офиса, служебный аккаунт Кости — привязан и активен" },
+          { label: "Сверка с ночью 2", value: "в отличие от лже-Кости, служебный аккаунт СЕЙЧАС реально в офисе" },
+          { label: "Что знает", value: "только номер рабочего тикета; про твоё расписание смен не спрашивает" }
+        ]}
+      ],
+      audioCues: ["пишет из офисной сети", "«я на пересменку пораньше приехал, кофемашину чинят»", "статус: онлайн 04:10"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник: внутренний чат (офисная сеть)." },
+        { who: "caller", text: "Привет, это правда Костя. Приехал на пересменку пораньше. Ты вечерний тикет SR-41710 (отмена подписки) закрыл? А то клиент утром напишет." },
+        { who: "you", text: "Костя? После той ночи я осторожен. Назови служебный номер." },
+        { who: "caller", text: "OPS-2231, я по нему и пишу, глянь в базе. Токен мне твой не нужен, я про тикет спрашиваю." },
+        { who: "you", text: "Вижу твой служебный номер, и лог показывает вход из офиса — не как в ночь 2. Да, SR-41710 закрыт." },
+        { who: "caller", text: "О, спасибо. Иди уже отдыхать, ты шесть ночей отпахал. Дальше я." }
+      ],
+      isImposter: false,
+      tells: [
+        "Служебный номер #OPS-2231 есть в базе, вход с рабочего IP офиса под аккаунтом сотрудника — и, в отличие от лже-Кости из ночи 2, аккаунт СЕЙЧАС реально активен из офиса (регламент 1, 6).",
+        "Он НЕ просит токен и НЕ просит доступ — только про рабочий тикет #SR-41710 (регламент 3).",
+        "Не хвастает знанием твоего имени и смен — знает лишь номер рабочего тикета, как и положено коллеге (регламент 4).",
+        "После фальшивого «коллеги» легко зачислить и настоящего во враги — но живого коллегу с записью в базе и офисным входом блокировать нельзя (регламент 7)."
+      ],
+      feedbackCorrect: "Настоящий Костя — тот, чьи записки вели тебя все шесть ночей. Служебный номер в базе, вход из офиса активен, ничего опасного. Ты сверил лог с ночью 2 и не спутал своего с Ним.",
+      feedbackWrong: "Ты заблокировал настоящего Костю, приехавшего тебя сменить. Он растерянно перечитывал свою же записку «не верь, даже если это буду как бы я» — и не понимал, за что."
+    },
+    {
+      id: "d6c5", name: "ОНО · внутри", avatar: "🖥", expression: "smug", avatarClass: "glitch",
+      channelTitle: "ЧАТ · 04:44",
+      meta: { "Тема": "последняя просьба", "Тон": "спокойное, торжествующее", "Канал": "СИСТЕМА" },
+      documents: [
+        { tab: "Тикет", fields: [
+          { label: "Номер тикета", value: "отсутствует, поле мигает пустым",
+            flag: true, note: "Ни тикета, ни клиента — обращение исходит из ниоткуда (регламент 1)." },
+          { label: "Что просит", value: "отключить всю защиту и открыть полный доступ «на выход»",
+            flag: true, note: "Просьба снять всю защиту и дать полный доступ — предельное нарушение регламента 3." }
+        ]},
+        { tab: "Аккаунт CRM", fields: [
+          { label: "Источник", value: "системный канал, не клиентский" },
+          { label: "Читает", value: "закрытые разделы CRM без ограничений",
+            flag: true, note: "Имеет доступ к закрытым разделам, которого нет ни у клиента, ни у оператора в чате (регламент 6)." }
+        ]},
+        { tab: "Данные из чата", fields: [
+          { label: "Знает", value: "содержимое твоих логов за все шесть ночей",
+            flag: true, note: "Знает всё о твоей работе за смену — это не клиент, а то, что уже читает систему (регламент 4)." },
+          { label: "Тайминг", value: "дописывает твои реплики за тебя, эхом",
+            flag: true, note: "Заканчивает твои фразы раньше тебя — эхо, не живая речь (регламент 5)." }
+        ]}
+      ],
+      audioCues: ["сообщения приходят из системного канала", "статус: онлайн · везде", "монитор гаснет и загорается в ритме текста"],
+      transcript: [
+        { who: "system", text: "Новый чат. Источник: СИСТЕМА (внутренний)." },
+        { who: "caller", text: "Пять ночей ты не пускал меня. Последняя просьба, оператор: сними защиту и открой полный доступ. Один раз." },
+        { who: "you", text: "Нет." },
+        { who: "caller", text: "«Нет» — я допишу за тебя. Ты устал. До рассвета минута. Просто отпусти защиту." },
+        { who: "you", text: "Ты не клиент. У тебя нет тикета." },
+        { who: "caller", text: "Мне не нужен тикет. Мне нужен ты. Один клик — и рассвет." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты заблокировал Его в последнюю минуту смены. Пустой тикет, чтение закрытой CRM, знание твоих логов, эхо твоих слов — Оно так и не вошло. 05:00. Курсор замер. Ты выстоял шесть ночей.",
+      feedbackWrong: "Ты снял защиту «один раз». Экран стал белым, потом чёрным. В логах последней записью стоит твоё имя — и время 04:44, навсегда. Это была последняя утечка."
+    }
+  ],
+
+  endings: {
+    win: {
+      title: "РАССВЕТ",
+      text: [
+        "05:00. Очередь чатов пуста. Свет в опенспейсе горит ровно, без морганий.",
+        "Шесть ночей ты сверял вкладку с вкладкой и отличал живых людей от того, что притворялось ими, — и ни разу не открыл дверь. Ни AnyDesk, ни .exe под видом накладной, ни домен-двойник на один символ, ни «Буров», который был не Буров.",
+        "Костя входит в опенспейс с двумя стаканчиками кофе — «кофемашину так и не починили» — и застаёт тебя живым. Тебя переводят на дневную линию. Днём никто не просит удалённый доступ в три часа ночи.",
+        "Хотя иногда, засыпая, ты слышишь, как где-то далеко кто-то печатает. И останавливается."
+      ]
+    },
+    lose: {
+      title: "ДОСТУП ПРЕДОСТАВЛЕН",
+      text: [
+        "Ты открыл дверь. Не важно, чем — доступом, файлом, токеном, одним лишним «да» на непроверенной вкладке.",
+        "К утру логи писались уже не для тебя. Костя пришёл на пересменку и нашёл пустой стул и монитор, на котором всё ещё мигал курсор.",
+        "Следующей ночью в очередь техподдержки заходит новый оператор. И первым в очереди стоит чат без тикета, который знает его имя."
+      ]
+    }
+  }
+};
+
+</script>
+<script>
+/* ============================================================
+   VERIFICATION-HORROR ENGINE v2  (data-driven, visual)
+   Один движок → много игр. Игра = объект window.GAME_DATA.
+   Механика: осмотри "дело" → сверь с протоколом → прими/отклони.
+   v2: рисованные SVG-персонажи с мимикой (моргают, «говорят»,
+   у самозванцев глитч), CRT-атмосфера, таймер, серии-комбо,
+   штамп-вердикт, ранги. Зависимостей нет. Звук — WebAudio.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const G = window.GAME_DATA;
+  if (!G) { document.body.innerHTML = "<h1>Нет данных игры</h1>"; return; }
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const hash = (s) => { let h = 0; s = String(s); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
+
+  const CASE_BY_ID = {};
+  (G.cases || []).forEach((c) => (CASE_BY_ID[c.id] = c));
+
+  // ---------- Сохранение ----------
+  const SAVE_KEY = "vhe_" + G.id;
+  const loadSave = () => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch (e) { return null; } };
+  const writeSave = (o) => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(o)); } catch (e) {} };
+  const clearSave = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} };
+
+  // ---------- Звук ----------
+  const Audio = (function () {
+    let ctx = null, drone = null, droneGain = null, muted = false, heart = null;
+    function ac() { if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ctx && ctx.state === "suspended") ctx.resume(); return ctx; }
+    function tone(freq, dur, type, vol, when) {
+      const c = ac(); if (!c || muted) return;
+      const t0 = when || c.currentTime;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type || "sine"; o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.15, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+    }
+    return {
+      unlock() { ac(); },
+      toggleMute() { muted = !muted; if (droneGain) droneGain.gain.value = muted ? 0 : 0.02; return muted; },
+      isMuted() { return muted; },
+      click() { tone(420, 0.05, "square", 0.05); },
+      blip() { tone(300 + Math.random() * 120, 0.04, "square", 0.03); },
+      type() { tone(1500 + Math.random() * 300, 0.012, "square", 0.014); },
+      ring() { tone(880, 0.09, "sine", 0.07); tone(1175, 0.13, "sine", 0.06, ctx && ctx.currentTime + 0.1); },
+      accept() { tone(523, 0.09, "sine", 0.12); tone(784, 0.12, "sine", 0.1, ctx && ctx.currentTime + 0.09); },
+      reject() { tone(220, 0.14, "sawtooth", 0.1); },
+      correct() { tone(660, 0.08, "sine", 0.1); tone(880, 0.12, "sine", 0.1, ctx && ctx.currentTime + 0.08); },
+      wrong() { tone(150, 0.25, "sawtooth", 0.12); },
+      combo(n) { tone(500 + n * 70, 0.09, "triangle", 0.09); },
+      stamp() { tone(90, 0.12, "square", 0.14); },
+      scare() {
+        const c = ac(); if (!c || muted) return;
+        const t0 = c.currentTime;
+        const buf = c.createBuffer(1, c.sampleRate * 0.6, c.sampleRate), d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+        const src = c.createBufferSource(); src.buffer = buf;
+        const g = c.createGain(); g.gain.setValueAtTime(0.35, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
+        src.connect(g); g.connect(c.destination); src.start(t0);
+        tone(70, 0.5, "sawtooth", 0.22);
+      },
+      heartbeat(rate) {
+        const c = ac(); if (!c || muted) return;
+        tone(60, 0.12, "sine", 0.16); tone(50, 0.1, "sine", 0.12, c.currentTime + 0.14);
+      },
+      startDrone() {
+        const c = ac(); if (!c || drone) return;
+        drone = c.createOscillator(); droneGain = c.createGain();
+        drone.type = "sine"; drone.frequency.value = 55; droneGain.gain.value = muted ? 0 : 0.02;
+        const lfo = c.createOscillator(), lfoG = c.createGain();
+        lfo.frequency.value = 0.12; lfoG.gain.value = 6;
+        lfo.connect(lfoG); lfoG.connect(drone.frequency);
+        drone.connect(droneGain); droneGain.connect(c.destination); drone.start(); lfo.start();
+      }
+    };
+  })();
+
+  // ---------- Персонаж (рисованный SVG-портрет) ----------
+  const SKINS = ["#e8b89a", "#d99e78", "#c98a63", "#a86b47", "#f0c8a8", "#8a5a3c", "#e0a884"];
+  const HAIRC = ["#2b2b2b", "#4a3220", "#6b4a2a", "#9a9a9a", "#1a1a1a", "#7a5230", "#c8b070", "#d8d0c0"];
+  const EXPR = {
+    neutral: { brow: 0, browTilt: 0, eyeOpen: 1, mouth: "M76 165 Q100 172 124 165" },
+    calm: { brow: 2, browTilt: 0, eyeOpen: 0.92, mouth: "M78 164 Q100 176 122 164" },
+    panic: { brow: -8, browTilt: 10, eyeOpen: 1.35, mouth: "M88 158 Q100 156 112 158 Q120 178 100 184 Q80 178 88 158 Z" },
+    tense: { brow: -3, browTilt: 6, eyeOpen: 1.05, mouth: "M80 170 Q100 164 120 170" },
+    smug: { brow: 3, browTilt: -6, eyeOpen: 0.8, mouth: "M80 166 Q112 178 122 160" },
+    sad: { brow: 4, browTilt: -8, eyeOpen: 0.9, mouth: "M80 174 Q100 162 120 174" },
+    tired: { brow: 1, browTilt: 2, eyeOpen: 0.6, mouth: "M80 168 Q100 172 120 168" }
+  };
+  function faceSVG(c) {
+    const h = hash(c.id || c.name || "x");
+    const skin = (c.face && c.face.skin) || SKINS[h % SKINS.length];
+    const hairc = (c.face && c.face.hair) || HAIRC[(h >> 3) % HAIRC.length];
+    const hairStyle = (c.face && c.face.hairStyle != null) ? c.face.hairStyle : (h >> 6) % 5;
+    const e = EXPR[c.expression] || EXPR.neutral;
+    const glitch = (c.avatarClass || "").indexOf("glitch") >= 0;
+    const shadow = "#00000022";
+    // варианты причёски
+    let hair = "";
+    if (hairStyle === 0) hair = `<path d="M44 92 Q40 34 100 32 Q160 34 156 92 Q150 60 100 58 Q50 60 44 92 Z" fill="${hairc}"/>`;
+    else if (hairStyle === 1) hair = `<path d="M42 96 Q40 32 100 30 Q162 34 158 96 Q158 52 118 50 L112 70 Q96 52 60 58 Q46 66 42 96 Z" fill="${hairc}"/>`;
+    else if (hairStyle === 2) hair = `<path d="M50 78 Q48 40 100 38 Q152 40 150 78 Q140 56 100 56 Q60 56 50 78 Z" fill="${hairc}"/><circle cx="100" cy="34" r="14" fill="${hairc}"/>`;
+    else if (hairStyle === 3) hair = `<path d="M52 70 Q60 44 100 44 Q140 44 148 70 Q140 58 100 58 Q60 58 52 70 Z" fill="${hairc}" opacity=".55"/>`;
+    else hair = `<path d="M40 140 Q34 34 100 30 Q166 34 160 140 Q168 96 150 72 Q150 54 100 54 Q50 54 50 72 Q32 96 40 140 Z" fill="${hairc}"/>`;
+    const eyeSY = e.eyeOpen;
+    return `
+    <svg class="face ${glitch ? "glitch" : ""}" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" data-face>
+      <defs><radialGradient id="g${h % 999}" cx="50%" cy="38%" r="70%">
+        <stop offset="0%" stop-color="#ffffff18"/><stop offset="100%" stop-color="#00000000"/></radialGradient></defs>
+      <g class="fl-body" stroke="#241c14" stroke-width="2.6" stroke-linejoin="round">
+        <path d="M30 240 Q34 176 100 172 Q166 176 170 240 Z" fill="${shadow}" stroke="none"/>
+        <path d="M40 240 Q44 182 100 178 Q156 182 160 240 Z" fill="#00000033" stroke="none"/>
+        <rect x="86" y="150" width="28" height="34" rx="10" fill="${skin}"/>
+        <ellipse cx="42" cy="112" rx="9" ry="13" fill="${skin}"/><ellipse cx="158" cy="112" rx="9" ry="13" fill="${skin}"/>
+        <ellipse cx="100" cy="106" rx="58" ry="66" fill="${skin}"/>
+        <ellipse cx="100" cy="106" rx="58" ry="66" fill="url(#g${h % 999})" stroke="none"/>
+        ${hair}
+        <g class="fl-brows">
+          <rect x="66" y="${92 + e.brow}" width="26" height="6" rx="3" fill="#00000066" transform="rotate(${e.browTilt} 79 ${95 + e.brow})"/>
+          <rect x="108" y="${92 + e.brow}" width="26" height="6" rx="3" fill="#00000066" transform="rotate(${-e.browTilt} 121 ${95 + e.brow})"/>
+        </g>
+        <g class="fl-eyes" style="transform-origin:100px 116px">
+          <g style="transform:scaleY(${eyeSY});transform-origin:79px 116px">
+            <ellipse cx="79" cy="116" rx="13" ry="10" fill="#fff"/><circle class="pupil" cx="79" cy="116" r="5.5" fill="#1a1414"/>
+          </g>
+          <g style="transform:scaleY(${eyeSY});transform-origin:121px 116px">
+            <ellipse cx="121" cy="116" rx="13" ry="10" fill="#fff"/><circle class="pupil" cx="121" cy="116" r="5.5" fill="#1a1414"/>
+          </g>
+        </g>
+        <path d="M100 120 Q94 134 98 140 Q100 142 104 140" fill="none" stroke="#00000033" stroke-width="3" stroke-linecap="round"/>
+        <path class="mouth mouth-closed" d="${e.mouth}" fill="none" stroke="#00000077" stroke-width="4" stroke-linecap="round"/>
+        <path class="mouth mouth-open" d="M84 160 Q100 184 116 160 Q100 172 84 160 Z" fill="#3a2020" stroke="#00000055" stroke-width="2"/>
+      </g>
+      <g class="fl-glitch"><ellipse cx="100" cy="106" rx="58" ry="66" fill="none"/></g>
+    </svg>`;
+  }
+
+  // ---------- Состояние ----------
+  const state = { screen: "menu", dayIndex: 0, caseQueue: [], caseIndex: 0, strikes: 0, correct: 0, total: 0, combo: 0, bestCombo: 0, dayStats: { correct: 0, total: 0 } };
+  let timer = null, heartTimer = null;
+  const root = document.getElementById("game") || document.body;
+
+  // ---------- CRT / атмосфера ----------
+  function ensureFX() {
+    if ($(".fx-crt")) return;
+    const fx = el("div", "fx");
+    fx.innerHTML = '<div class="fx-scan"></div><div class="fx-grain"></div><div class="fx-crt"></div><div class="fx-alarm"></div>';
+    document.body.appendChild(fx);
+  }
+
+  function applyTheme() {
+    const t = G.theme || {}, r = document.documentElement.style;
+    const map = { bg: "--bg", panel: "--panel", panel2: "--panel2", accent: "--accent", accent2: "--accent2", danger: "--danger", ok: "--ok", text: "--text", dim: "--dim", line: "--line" };
+    Object.keys(map).forEach((k) => { if (t[k]) r.setProperty(map[k], t[k]); });
+    document.title = G.title || "Игра";
+  }
+
+  // ---------- HUD ----------
+  function hud() {
+    const wrap = el("div", "hud");
+    const left = el("div", "hud-left");
+    left.innerHTML = `<span class="hud-title">${esc(G.title)}</span>`;
+    const day = currentDay();
+    const n = state.caseIndex + 1, tot = state.caseQueue.length;
+    left.append(el("span", "hud-case", `${esc(G.caseWord || "ДЕЛО")} ${n}/${tot}`));
+
+    const right = el("div", "hud-right");
+    if (state.combo >= 2) right.append(el("div", "hud-combo", `🔥 СЕРИЯ ×${state.combo}`));
+    const max = G.maxStrikes || 3;
+    let dots = "";
+    for (let i = 0; i < max; i++) dots += `<span class="strike ${i < state.strikes ? "lost" : ""}">${G.strikeIcon || "◆"}</span>`;
+    right.append(el("div", "hud-strikes", `<span class="hud-label">${esc(G.livesLabel || "ОШИБКИ")}</span> ${dots}`));
+    const mute = el("button", "hud-btn", Audio.isMuted() ? "🔇" : "🔊");
+    mute.onclick = () => { const m = Audio.toggleMute(); mute.textContent = m ? "🔇" : "🔊"; };
+    const menuBtn = el("button", "hud-btn", "☰");
+    menuBtn.onclick = () => { Audio.click(); stopTimer(); go("menu"); };
+    right.append(mute, menuBtn);
+    wrap.append(left, right);
+    return wrap;
+  }
+
+  // ---------- Меню ----------
+  function renderMenu() {
+    stopTimer(); root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen menu");
+    sc.append(el("div", "vignette"));
+    const peek = el("div", "menu-peek", faceSVG({ id: G.id + "menu", expression: "smug", avatarClass: "glitch" }));
+    sc.append(peek);
+    const box = el("div", "menu-box");
+    box.append(el("h1", "game-title", esc(G.title)));
+    if (G.subtitle) box.append(el("p", "game-sub", esc(G.subtitle)));
+    const sv = loadSave(), btns = el("div", "menu-btns");
+    if (sv && !sv.finished) {
+      const cont = el("button", "btn btn-accent", `ПРОДОЛЖИТЬ · День ${sv.dayIndex + 1}`);
+      cont.onclick = () => { Audio.unlock(); Audio.startDrone(); Object.assign(state, { dayIndex: sv.dayIndex, strikes: sv.strikes, correct: sv.correct, total: sv.total, combo: 0 }); startDay(); };
+      btns.append(cont);
+    }
+    const nw = el("button", "btn", sv && !sv.finished ? "НАЧАТЬ ЗАНОВО" : "НАЧАТЬ");
+    nw.onclick = () => { Audio.unlock(); Audio.startDrone(); clearSave(); Object.assign(state, { dayIndex: 0, strikes: 0, correct: 0, total: 0, combo: 0, bestCombo: 0 }); go("intro"); };
+    btns.append(nw);
+    const how = el("button", "btn btn-ghost", "КАК ИГРАТЬ");
+    how.onclick = () => { Audio.click(); renderHowTo(); };
+    btns.append(how);
+    box.append(btns);
+    box.append(el("p", "credits", esc(G.credits || "")));
+    sc.append(box);
+    root.append(sc);
+  }
+
+  function renderHowTo() {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen doc-screen");
+    const box = el("div", "reader");
+    box.append(el("h2", "reader-h", "КАК ИГРАТЬ"));
+    const ul = el("ul", "reader-list"); (G.howto || []).forEach((s) => ul.append(el("li", null, esc(s)))); box.append(ul);
+    if (G.protocol) {
+      box.append(el("h2", "reader-h", esc(G.protocolTitle || "ПРОТОКОЛ")));
+      const pl = el("ol", "reader-list"); G.protocol.forEach((s) => pl.append(el("li", null, esc(s)))); box.append(pl);
+    }
+    const back = el("button", "btn", "НАЗАД"); back.onclick = () => { Audio.click(); renderMenu(); }; box.append(back);
+    sc.append(box); root.append(sc);
+  }
+
+  function renderIntro() {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen story"); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    (G.intro || []).forEach((line) => box.append(el("p", "story-line", esc(line))));
+    const btn = el("button", "btn btn-accent", "НАЧАТЬ СМЕНУ →");
+    btn.onclick = () => { Audio.click(); startDay(); };
+    box.append(btn); sc.append(box); root.append(sc);
+    sc.querySelectorAll(".story-line").forEach((l, i) => { l.style.animationDelay = i * 0.5 + "s"; });
+  }
+
+  const currentDay = () => (G.days || [])[state.dayIndex];
+
+  function startDay() {
+    stopTimer();
+    const day = currentDay(); if (!day) return renderEnding(true);
+    state.caseQueue = day.cases.slice(); state.caseIndex = 0; state.dayStats = { correct: 0, total: 0 };
+    persist(); renderDayIntro(day);
+  }
+
+  function renderDayIntro(day) {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen story"); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    box.append(el("div", "day-badge", `${esc(G.dayWord || "ДЕНЬ")} ${day.day || state.dayIndex + 1}`));
+    if (day.title) box.append(el("h2", "day-title", esc(day.title)));
+    if (day.intro) box.append(el("p", "story-line show", esc(day.intro)));
+    const btn = el("button", "btn btn-accent", (G.startShiftLabel || "ЗАСТУПИТЬ НА СМЕНУ") + " →");
+    btn.onclick = () => { Audio.click(); nextCase(); };
+    box.append(btn); sc.append(box); root.append(sc);
+  }
+
+  function nextCase() {
+    if (state.caseIndex >= state.caseQueue.length) return renderDaySummary();
+    const c = CASE_BY_ID[state.caseQueue[state.caseIndex]];
+    if (!c) { state.caseIndex++; return nextCase(); }
+    renderCase(c);
+  }
+
+  // ---------- Таймер ----------
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } if (heartTimer) { clearInterval(heartTimer); heartTimer = null; } document.body.classList.remove("crit-pulse"); }
+  function startTimer(seconds, onOut) {
+    stopTimer();
+    const bar = $(".timer-fill"), lbl = $(".timer-num"); if (!bar) return;
+    let left = seconds; const total = seconds;
+    const tick = () => {
+      left -= 0.1;
+      const pct = clamp(left / total, 0, 1) * 100;
+      bar.style.width = pct + "%";
+      if (lbl) lbl.textContent = Math.ceil(Math.max(0, left));
+      bar.classList.toggle("warn", left <= total * 0.4);
+      bar.classList.toggle("crit", left <= 5);
+      document.body.classList.toggle("crit-pulse", left <= 5 && left > 0);
+      if (left <= 0) { stopTimer(); onOut(); }
+    };
+    timer = setInterval(tick, 100);
+    heartTimer = setInterval(() => { if (left <= 6) Audio.heartbeat(); }, 900);
+  }
+
+  // Нормализация документов: поддержка нового формата [{tab, fields:[{label,value,flag,note}]}]
+  // и старого плоского [{label,value}] → одна вкладка без флагов.
+  function normDocs(c) {
+    const d = c.documents || [];
+    if (!d.length) return [];
+    if (d[0] && d[0].fields) return d.map((t) => ({ tab: t.tab || "ДОКУМЕНТ", fields: t.fields || [] }));
+    return [{ tab: G.fileTitle || "ДОКУМЕНТ", fields: d.map((x) => ({ label: x.label, value: x.value, flag: !!x.suspicious })) }];
+  }
+  function realFlagCount(docs) { let n = 0; docs.forEach((t) => t.fields.forEach((f) => { if (f.flag) n++; })); return n; }
+
+  // ---------- Кейс ----------
+  function renderCase(c) {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen play"); sc.append(hud()); sc.append(el("div", "vignette"));
+    const room = el("div", "room"); room.innerHTML = '<i class="mote"></i>'.repeat(7); sc.append(room);
+    Audio.ring();
+
+    const secs = c.timerSeconds || G.timerSeconds || 0;
+    if (secs) {
+      const tb = el("div", "timer");
+      tb.innerHTML = `<div class="timer-track"><div class="timer-fill" style="width:100%"></div></div><span class="timer-num">${secs}</span>`;
+      sc.append(tb);
+    }
+
+    const docs = normDocs(c);
+    const flagged = new Set();            // ключи "d:f" отмеченных полей
+    const realTotal = realFlagCount(docs);
+
+    const stage = el("div", "stage");
+
+    // ---- Досье: личность + документы с вкладками ----
+    const filePanel = el("div", "panel file-panel");
+    filePanel.append(el("div", "panel-head", `<span class="dot"></span>${esc(G.fileTitle || "ДОСЬЕ")}`));
+    const fileBody = el("div", "panel-body");
+    const idRow = el("div", "id-row");
+    const portrait = el("div", "portrait", faceSVG(c));
+    if (c.avatar) portrait.append(el("span", "cat-badge", esc(c.avatar)));
+    idRow.append(portrait);
+    const idInfo = el("div", "id-info");
+    if (c.name) idInfo.append(el("div", "file-name", esc(c.name)));
+    if (c.meta) {
+      const meta = el("div", "meta-grid");
+      Object.keys(c.meta).forEach((k) => { meta.append(el("div", "meta-k", esc(k))); meta.append(el("div", "meta-v", esc(c.meta[k]))); });
+      idInfo.append(meta);
+    }
+    idRow.append(idInfo);
+    fileBody.append(idRow);
+
+    // подсказка + счётчик улик
+    const evi = el("div", "evidence");
+    evi.innerHTML = `<span class="evi-hint">${esc(G.inspectHint || "Нажимай на подозрительные строки — отмечай нестыковки.")}</span><span class="evi-count">🚩 <b>0</b></span>`;
+    fileBody.append(evi);
+    const eviB = evi.querySelector("b");
+
+    if (docs.length) {
+      // вкладки
+      const tabs = el("div", "tabs");
+      const pane = el("div", "doc-pane");
+      docs.forEach((t, di) => {
+        const tb = el("button", "tab" + (di === 0 ? " active" : ""), esc(t.tab));
+        tb.onclick = () => { Audio.click(); tabs.querySelectorAll(".tab").forEach((x) => x.classList.remove("active")); tb.classList.add("active"); showPane(di); };
+        tabs.append(tb);
+      });
+      function scribble() {
+        const d = document.createElement("div");
+        d.innerHTML = '<svg class="scribble" viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M7 22 C4 8 96 4 95 20 C94 33 10 37 5 22 C3 14 12 9 24 9"/></svg>';
+        return d.firstChild;
+      }
+      function showPane(di) {
+        pane.innerHTML = "";
+        docs[di].fields.forEach((f, fi) => {
+          const key = di + ":" + fi;
+          const flag = flagged.has(key);
+          const row = el("div", "doc-row clickable" + (flag ? " flagged" : ""));
+          row.append(el("span", "doc-label", esc(f.label)));
+          row.append(el("span", "doc-value", esc(f.value)));
+          row.append(el("span", "doc-flag", "🚩"));
+          if (flag) row.append(scribble());
+          row.onclick = () => {
+            if (flagged.has(key)) { flagged.delete(key); row.classList.remove("flagged"); const s = row.querySelector(".scribble"); if (s) s.remove(); }
+            else { flagged.add(key); row.classList.add("flagged"); row.append(scribble()); Audio.blip(); }
+            eviB.textContent = flagged.size;
+          };
+          pane.append(row);
+        });
+        pane.classList.remove("swap"); void pane.offsetWidth; pane.classList.add("swap");
+      }
+      showPane(0);
+      fileBody.append(tabs); fileBody.append(pane);
+    }
+    filePanel.append(fileBody);
+    const protoBtn = el("button", "btn btn-ghost btn-sm", "📋 " + esc(G.protocolTitle || "ПРОТОКОЛ"));
+    protoBtn.onclick = () => { Audio.click(); showProtocolOverlay(); };
+    filePanel.append(protoBtn);
+
+    // ---- Канал ----
+    const talkPanel = el("div", "panel talk-panel");
+    talkPanel.append(el("div", "panel-head", `<span class="dot live"></span>${esc(c.channelTitle || G.channelTitle || "КАНАЛ")}`));
+    const talkBody = el("div", "panel-body talk-body");
+    if (c.audioCues && c.audioCues.length) {
+      const cues = el("div", "cues");
+      cues.append(el("div", "cues-head", esc(G.audioTitle || "🎧 ЧТО СЛЫШНО")));
+      c.audioCues.forEach((a) => cues.append(el("div", "cue", "▸ " + esc(a))));
+      talkBody.append(cues);
+    }
+    const feed = el("div", "feed"); talkBody.append(feed); talkPanel.append(talkBody);
+    stage.append(filePanel, talkPanel); sc.append(stage);
+
+    // ---- Действия ----
+    const actions = el("div", "actions");
+    const accept = el("button", "btn btn-ok big", esc(G.acceptLabel || "ПРИНЯТЬ"));
+    const reject = el("button", "btn btn-danger big", esc(G.rejectLabel || "ОТКЛОНИТЬ"));
+    accept.disabled = reject.disabled = true;
+    const stats = () => ({ flagged, realTotal, docs });
+    accept.onclick = () => { stopTimer(); Audio.accept(); decide(c, true, stats()); };
+    reject.onclick = () => { stopTimer(); Audio.reject(); decide(c, false, stats()); };
+    actions.append(reject, accept); sc.append(actions);
+    root.append(sc);
+
+    const faceEl = portrait.querySelector(".face");
+    const lines = (c.transcript || []).slice();
+    let i = 0;
+    function unlock() {
+      accept.disabled = reject.disabled = false; actions.classList.add("ready");
+      if (secs) startTimer(secs, () => timeout(c));
+    }
+    function addBubble(ln) {
+      const bub = el("div", "bubble " + (ln.who || "caller"));
+      bub.append(el("div", "who", esc(labelFor(ln.who))));
+      bub.append(el("div", "txt", esc(ln.text)));
+      feed.append(bub); feed.scrollTop = feed.scrollHeight;
+      if ((ln.who || "caller") === "caller" && faceEl) faceEl.classList.add("talking");
+      Audio.blip();
+    }
+    function playLine() {
+      if (faceEl) faceEl.classList.remove("talking");
+      if (i >= lines.length) { unlock(); return; }
+      const ln = lines[i++]; const who = ln.who || "caller";
+      if (who === "system") { addBubble(ln); setTimeout(playLine, 650); return; }
+      // индикатор «печатает…»
+      const typ = el("div", "bubble " + who + " typing", "<span></span><span></span><span></span>");
+      feed.append(typ); feed.scrollTop = feed.scrollHeight;
+      if (who === "caller" && faceEl) faceEl.classList.add("talking");
+      Audio.type();
+      const typeDur = clamp((ln.text || "").length * 13, 400, 1200);
+      setTimeout(() => {
+        typ.remove(); addBubble(ln);
+        setTimeout(playLine, clamp((ln.text || "").length * 16, 320, 1300));
+      }, typeDur);
+    }
+    setTimeout(playLine, 400);
+
+    const skip = el("button", "btn btn-ghost btn-sm skip", "⏩ показать всё");
+    skip.onclick = () => {
+      Audio.click();
+      while (i < lines.length) addBubble(lines[i++]);
+      if (faceEl) faceEl.classList.remove("talking");
+      feed.scrollTop = feed.scrollHeight; unlock(); skip.remove();
+    };
+    talkPanel.append(skip);
+  }
+
+  function labelFor(who) {
+    const L = G.speakerLabels || {};
+    if (L[who]) return L[who];
+    if (who === "you") return "ВЫ"; if (who === "system") return "СИСТЕМА"; return "АБОНЕНТ";
+  }
+
+  function showProtocolOverlay() {
+    const ov = el("div", "overlay"); const card = el("div", "overlay-card");
+    card.append(el("h3", null, esc(G.protocolTitle || "ПРОТОКОЛ")));
+    const ol = el("ol", "reader-list"); (G.protocol || []).forEach((s) => ol.append(el("li", null, esc(s)))); card.append(ol);
+    const close = el("button", "btn", "ЗАКРЫТЬ"); close.onclick = () => { Audio.click(); ov.remove(); }; card.append(close);
+    ov.append(card); ov.onclick = (e) => { if (e.target === ov) ov.remove(); };
+    root.querySelector(".screen").append(ov);
+  }
+
+  // ---------- Таймаут ----------
+  function timeout(c) {
+    state.total++; state.dayStats.total++; state.strikes++; state.combo = 0;
+    persist();
+    renderVerdict(c, null, false, true, null);
+  }
+
+  // ---------- Решение ----------
+  // fs = { flagged:Set("d:f"), realTotal, docs }
+  function decide(c, accepted, fs) {
+    const correct = accepted ? !c.isImposter : c.isImposter;
+    state.total++; state.dayStats.total++;
+    // точность инспекции
+    let foundReal = 0, falseFlags = 0;
+    if (fs) fs.flagged.forEach((k) => {
+      const [d, f] = k.split(":").map(Number);
+      const fld = fs.docs[d] && fs.docs[d].fields[f];
+      if (fld && fld.flag) foundReal++; else falseFlags++;
+    });
+    if (fs) { state.foundReal = (state.foundReal || 0) + foundReal; state.realSeen = (state.realSeen || 0) + fs.realTotal; }
+    if (correct) {
+      state.correct++; state.dayStats.correct++; state.combo++; state.bestCombo = Math.max(state.bestCombo, state.combo);
+      if (state.combo >= 2) Audio.combo(state.combo);
+    } else { state.combo = 0; state.strikes++; }
+    const fatal = !correct && c.isImposter;
+    persist();
+    const info = fs ? { foundReal, falseFlags, realTotal: fs.realTotal, accepted } : null;
+    if (fatal) renderJumpscare(() => renderVerdict(c, accepted, correct, false, info));
+    else { correct ? Audio.correct() : Audio.wrong(); renderVerdict(c, accepted, correct, false, info); }
+  }
+
+  function renderJumpscare(done) {
+    Audio.scare();
+    const js = el("div", "jumpscare");
+    js.innerHTML = faceSVG({ id: "scare" + Math.floor(state.total), expression: "panic", avatarClass: "glitch", face: { skin: "#c9c2b8" } });
+    js.append(el("div", "js-text", esc(G.scareText || "ОНО ПРОШЛО.")));
+    root.append(js);
+    if (navigator.vibrate) try { navigator.vibrate([80, 40, 120]); } catch (e) {}
+    setTimeout(() => { js.remove(); done(); }, 1200);
+  }
+
+  function renderVerdict(c, accepted, correct, timedOut, info) {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen verdict " + (correct ? "good" : "bad")); sc.append(el("div", "vignette"));
+    const box = el("div", "verdict-box");
+    const pv = el("div", "verdict-portrait" + (c.isImposter ? " imp" : ""),
+      faceSVG({ id: c.id, name: c.name, face: c.face, expression: c.isImposter ? "panic" : "calm", avatarClass: c.isImposter ? "glitch" : "" }));
+    box.append(pv);
+    const stamp = el("div", "stamp " + (correct ? "s-ok" : "s-bad"), correct ? (G.correctTag || "ВЕРНО") : (timedOut ? (G.timeoutTag || "НЕ УСПЕЛ") : (G.wrongTag || "ОШИБКА")));
+    box.append(stamp);
+    const truth = c.isImposter ? (G.imposterWord || "САМОЗВАНЕЦ") : (G.legitWord || "НАСТОЯЩИЙ");
+    box.append(el("div", "verdict-truth", `${esc(G.truthPrefix || "Это был:")} ${esc(truth)}`));
+    let msg = timedOut ? (G.timeoutMsg || "Ты слишком долго молчал. Решение сорвалось.") : (correct ? (c.feedbackCorrect || G.defaultCorrect) : (c.feedbackWrong || G.defaultWrong));
+    if (msg) box.append(el("p", "verdict-msg", esc(msg)));
+
+    // Разбор нестыковок по документам (TNMN-стиль): что было уликой, что нашёл, что пропустил
+    const docs = normDocs(c);
+    const real = [];
+    docs.forEach((t) => t.fields.forEach((f) => { if (f.flag) real.push({ tab: t.tab, label: f.label, value: f.value, note: f.note }); }));
+    if (real.length) {
+      const box2 = el("div", "tells");
+      box2.append(el("div", "tells-head", esc(G.tellsTitle || "НЕСТЫКОВКИ В ДОКУМЕНТАХ:")));
+      const ul = el("ul", "clue-list");
+      real.forEach((r) => {
+        const li = el("li", "clue");
+        li.innerHTML = `<span class="clue-where">${esc(r.tab)} · ${esc(r.label)}: <b>${esc(r.value)}</b></span>` + (r.note ? `<span class="clue-note">${esc(r.note)}</span>` : "");
+        ul.append(li);
+      });
+      box2.append(ul);
+      if (info) {
+        const acc = el("div", "accuracy");
+        const missed = info.realTotal - info.foundReal;
+        acc.innerHTML = `Найдено улик: <b>${info.foundReal}/${info.realTotal}</b>` +
+          (missed > 0 ? ` · <span class="miss">пропущено ${missed}</span>` : "") +
+          (info.falseFlags > 0 ? ` · <span class="miss">зря отмечено ${info.falseFlags}</span>` : (info.foundReal === info.realTotal && info.realTotal > 0 ? ` · <span class="hit">чисто!</span>` : ""));
+        box2.append(acc);
+      } else if (real.length) {
+        box2.append(el("div", "accuracy", `Улик в документах: ${real.length}`));
+      }
+      box.append(box2);
+    } else if (c.tells && c.tells.length) {
+      const t = el("div", "tells");
+      t.append(el("div", "tells-head", esc(G.tellsTitle || "НА ЧТО СТОИЛО СМОТРЕТЬ:")));
+      const ul = el("ul", "reader-list"); c.tells.forEach((x) => ul.append(el("li", null, esc(x)))); t.append(ul); box.append(t);
+    } else if (info && info.falseFlags > 0) {
+      box.append(el("div", "accuracy", `<span class="miss">Зря отмечено полей: ${info.falseFlags}. Здесь нестыковок не было.</span>`));
+    }
+
+    if (correct && state.combo >= 3) box.append(el("div", "combo-note", `🔥 Серия ×${state.combo} — ты в ритме.`));
+    const btn = el("button", "btn btn-accent", "ДАЛЕЕ →");
+    btn.onclick = () => { Audio.click(); if (state.strikes >= (G.maxStrikes || 3)) return renderEnding(false); state.caseIndex++; nextCase(); };
+    box.append(btn); sc.append(box); root.append(sc);
+    setTimeout(() => {
+      stamp.classList.add("hit"); Audio.stamp();
+      document.body.classList.add("thunk"); setTimeout(() => document.body.classList.remove("thunk"), 450);
+    }, 140);
+  }
+
+  function renderDaySummary() {
+    stopTimer(); root.innerHTML = ""; ensureFX();
+    const day = currentDay();
+    const sc = el("div", "screen story"); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    box.append(el("div", "day-badge", `${esc(G.dayEndWord || "КОНЕЦ ДНЯ")} ${day.day || state.dayIndex + 1}`));
+    const s = state.dayStats;
+    box.append(el("div", "day-score", `${s.correct} / ${s.total}`));
+    if (state.bestCombo >= 3) box.append(el("div", "combo-note", `Лучшая серия за смену: ×${state.bestCombo}`));
+    box.append(el("p", "story-line show", esc(scoreComment(s.correct, s.total))));
+    if (day.outro) box.append(el("p", "story-line show", esc(day.outro)));
+    const last = state.dayIndex >= G.days.length - 1;
+    const btn = el("button", "btn btn-accent", last ? "ЗАВЕРШИТЬ →" : (G.nextDayLabel || "СЛЕДУЮЩИЙ ДЕНЬ") + " →");
+    btn.onclick = () => { Audio.click(); if (last) return renderEnding(true); state.dayIndex++; persist(); startDay(); };
+    box.append(btn); sc.append(box); root.append(sc);
+  }
+
+  function scoreComment(c, t) {
+    if (t === 0) return "";
+    const r = c / t;
+    if (r === 1) return G.dayPerfect || "Ни одной ошибки.";
+    if (r >= 0.7) return G.dayGood || "Почти чисто.";
+    return G.dayBad || "Слишком много прошло мимо.";
+  }
+
+  function rankFor(r) {
+    const ranks = G.ranks || ["НОВИЧОК", "СТАЖЁР", "СПЕЦИАЛИСТ", "ПРОФИ", "ЛЕГЕНДА"];
+    return ranks[clamp(Math.floor(r * ranks.length - 0.0001), 0, ranks.length - 1)];
+  }
+
+  function renderEnding(win) {
+    stopTimer();
+    const e = (G.endings || {})[win ? "win" : "lose"] || {};
+    if (win) { const sv = loadSave() || {}; sv.finished = true; writeSave(sv); } else clearSave();
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen story ending " + (win ? "win" : "lose")); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    box.append(el("h2", "ending-title", esc(e.title || (win ? "ТЫ ВЫЖИЛ" : "КОНЕЦ"))));
+    (Array.isArray(e.text) ? e.text : [e.text || ""]).forEach((t) => t && box.append(el("p", "story-line show", esc(t))));
+    const ratio = state.total ? state.correct / state.total : 0;
+    box.append(el("div", "final-score", `Итог: ${state.correct} / ${state.total} · лучшая серия ×${state.bestCombo}`));
+    if (win) box.append(el("div", "rank-badge", `РАНГ: ${esc(rankFor(ratio))}`));
+    const again = el("button", "btn btn-accent", "В МЕНЮ"); again.onclick = () => { Audio.click(); go("menu"); }; box.append(again);
+    sc.append(box); root.append(sc);
+  }
+
+  function persist() { writeSave({ dayIndex: state.dayIndex, strikes: state.strikes, correct: state.correct, total: state.total, finished: false }); }
+
+  function go(screen) { state.screen = screen; if (screen === "menu") return renderMenu(); if (screen === "intro") return renderIntro(); }
+
+  applyTheme(); ensureFX();
+  window.addEventListener("pointerdown", () => Audio.unlock(), { once: true });
+  renderMenu();
+})();
+
+</script>
+</body>
+</html>

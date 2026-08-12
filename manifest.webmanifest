@@ -1,0 +1,12 @@
+{
+  "name": "Волк в овечьей шкуре",
+  "short_name": "Волк",
+  "description": "Игра про рекрутёра: сверяй документы кандидатов и находи накрутку в резюме.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#171c18",
+  "theme_color": "#171c18",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

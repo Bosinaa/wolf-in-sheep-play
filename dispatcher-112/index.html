@@ -1,0 +1,2129 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171c18">
+<meta name="description" content="Ночная смена на пульте спасения. Один из голосов в трубке — не человек.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ДИСПЕТЧЕР 112">
+<meta property="og:description" content="Ночная смена на пульте спасения. Один из голосов в трубке — не человек.">
+<meta property="og:image" content="og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ДИСПЕТЧЕР 112">
+<meta name="twitter:description" content="Ночная смена на пульте спасения. Один из голосов в трубке — не человек.">
+<meta name="twitter:image" content="og.jpg">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="favicon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+<title>ДИСПЕТЧЕР 112</title>
+<style>
+/* ===== VERIFICATION-HORROR ENGINE v2 — скин ===== */
+:root{
+  --bg:#0b0d10; --panel:#14181d; --panel2:#1b2027; --line:#2a323c;
+  --text:#e8edf2; --dim:#8b97a5; --accent:#5ad1c9; --accent2:#c9a15a;
+  --ok:#4fd67f; --danger:#e5545a;
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+#game{height:100%}
+button{font-family:inherit;cursor:pointer}
+::selection{background:var(--accent);color:#000}
+
+/* ---- CRT / атмосфера (поверх всего, не мешает кликам) ---- */
+.fx{position:fixed;inset:0;pointer-events:none;z-index:80}
+.fx-scan{position:absolute;inset:0;opacity:.35;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0,rgba(0,0,0,.25) 1px,transparent 1px,transparent 3px)}
+.fx-crt{position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5) 100%);
+  box-shadow:inset 0 0 160px rgba(0,0,0,.6)}
+.fx-alarm{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 130px var(--danger),inset 0 0 40px var(--danger);transition:opacity .25s}
+body.crit-pulse .fx-alarm{opacity:.55;animation:pulse .5s infinite}
+.fx-grain{position:absolute;inset:-50%;opacity:.05;animation:grain .6s steps(3) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-4%,3%)}66%{transform:translate(3%,-2%)}100%{transform:translate(0,0)}}
+
+.screen{position:relative;height:100%;width:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:18px;overflow:hidden;animation:scin .35s}
+@keyframes scin{from{opacity:0}to{opacity:1}}
+.vignette{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,.7) 100%)}
+.screen>*{position:relative;z-index:1}
+
+/* ---- Кнопки ---- */
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+  padding:13px 20px;border-radius:10px;font-size:15px;font-weight:600;letter-spacing:.3px;
+  transition:transform .08s,background .15s,border-color .15s;min-width:180px}
+.btn:hover:not(:disabled){background:#232a33;border-color:var(--accent);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.32;cursor:not-allowed}
+.btn-accent{background:var(--accent);color:#06110f;border-color:transparent}
+.btn-accent:hover:not(:disabled){filter:brightness(1.12)}
+.btn-ok{background:var(--ok);color:#04120a;border-color:transparent}
+.btn-ok:hover:not(:disabled){filter:brightness(1.1)}
+.btn-danger{background:var(--danger);color:#fff;border-color:transparent}
+.btn-danger:hover:not(:disabled){filter:brightness(1.1)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--dim)}
+.btn-ghost:hover:not(:disabled){color:var(--text)}
+.btn-sm{padding:8px 12px;font-size:12px;min-width:0}
+.big{font-size:17px;padding:16px 26px;flex:1}
+
+/* ---- Персонаж (SVG-лицо) ---- */
+.face{width:100%;height:100%;display:block}
+.face .fl-eyes{animation:blink 4.8s infinite}
+.face .fl-eyes .pupil{animation:glance 7s infinite}
+@keyframes blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+@keyframes glance{0%,40%{transform:translateX(0)}45%,60%{transform:translateX(-3px)}65%,85%{transform:translateX(3px)}90%,100%{transform:translateX(0)}}
+.face .mouth-open{opacity:0}
+.face.talking .mouth-closed{opacity:0}
+.face.talking .mouth-open{opacity:1;animation:talk .2s steps(2) infinite;transform-origin:100px 165px}
+@keyframes talk{0%{transform:scaleY(.35)}100%{transform:scaleY(1)}}
+.face.glitch{animation:facejit 4s infinite}
+@keyframes facejit{0%,82%,100%{filter:none;transform:none}
+  84%{filter:hue-rotate(50deg) saturate(1.6);transform:translate(-2px,1px) skewX(3deg)}
+  86%{transform:translate(3px,-1px)}88%{filter:contrast(1.4);transform:translate(-1px,0)}90%{transform:none}}
+
+/* ---- Меню ---- */
+.menu{overflow:hidden}
+.menu-peek{position:absolute;right:-40px;bottom:-30px;width:min(46vw,440px);height:min(70vh,560px);
+  opacity:.16;z-index:0;filter:grayscale(.3) contrast(1.1);pointer-events:none;animation:peek 9s ease-in-out infinite}
+@keyframes peek{0%,100%{transform:translateY(10px)}50%{transform:translateY(-6px)}}
+.menu-box{text-align:center;max-width:640px;animation:fade .8s}
+.game-title{font-size:clamp(40px,8.5vw,88px);font-weight:900;letter-spacing:2px;margin:0 0 10px;line-height:.92;
+  text-wrap:balance;text-transform:uppercase;
+  text-shadow:3px 0 0 var(--accent),-3px 0 0 var(--danger),0 3px 0 rgba(0,0,0,.55),0 0 30px rgba(0,0,0,.6)}
+.game-sub{color:var(--dim);font-size:16px;margin:0 0 34px;max-width:520px;margin-inline:auto}
+.menu-btns{display:flex;flex-direction:column;gap:12px;align-items:center}
+.menu-btns .btn{width:280px}
+.credits{color:var(--dim);opacity:.55;font-size:12px;margin-top:30px}
+
+/* ---- Сюжет / дни ---- */
+.story-box{max-width:680px;text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center}
+.story-line{font-size:clamp(16px,2.2vw,20px);line-height:1.55;opacity:0;animation:fade .8s forwards}
+.story-line.show{opacity:1;animation:none}
+.day-badge{font-family:var(--mono);letter-spacing:4px;color:var(--accent);font-size:14px;border:1px solid var(--line);padding:6px 16px;border-radius:99px}
+.day-title{font-size:clamp(24px,4vw,38px);font-weight:800;margin:4px 0}
+.day-score,.final-score{font-family:var(--mono);font-size:40px;font-weight:800;color:var(--accent)}
+.final-score{font-size:18px;color:var(--dim)}
+.rank-badge{font-family:var(--mono);letter-spacing:2px;color:var(--accent2);border:1px solid var(--accent2);
+  padding:8px 18px;border-radius:99px;font-weight:700}
+.combo-note{color:var(--accent2);font-size:15px;font-weight:600}
+.ending-title{font-size:clamp(30px,6vw,56px);font-weight:900;margin:0}
+.ending.lose .ending-title{color:var(--danger)}.ending.win .ending-title{color:var(--ok)}
+
+/* ---- Reader ---- */
+.doc-screen{align-items:center}
+.reader{max-width:680px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 30px;max-height:86vh;overflow:auto}
+.reader-h{color:var(--accent);letter-spacing:1px;font-size:18px;margin:18px 0 10px}
+.reader-h:first-child{margin-top:0}
+.reader-list{margin:0 0 8px;padding-left:22px;line-height:1.6}
+.reader-list li{margin-bottom:8px}
+.reader .btn{margin-top:16px}
+
+/* ---- HUD ---- */
+.hud{position:absolute;top:0;left:0;right:0;z-index:6;display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;gap:10px;background:linear-gradient(var(--bg),rgba(0,0,0,0))}
+.hud-left{display:flex;align-items:center;gap:12px}
+.hud-title{font-weight:800;letter-spacing:1px;font-size:15px}
+.hud-case{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);padding:3px 8px;border-radius:6px}
+.hud-right{display:flex;align-items:center;gap:10px}
+.hud-combo{font-family:var(--mono);font-size:12px;color:var(--accent2);font-weight:700;animation:fade .3s}
+.hud-strikes{display:flex;align-items:center;gap:6px;font-size:13px}
+.hud-label{color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:1px}
+.strike{color:var(--line);font-size:16px}
+.strike.lost{color:var(--danger);text-shadow:0 0 8px var(--danger);animation:pop .3s}
+.hud-btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);width:34px;height:34px;border-radius:8px;font-size:15px}
+.hud-btn:hover{border-color:var(--accent)}
+
+/* ---- Таймер ---- */
+.timer{position:absolute;top:48px;left:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:0 18px}
+.timer-track{flex:1;height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.timer-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .1s linear}
+.timer-fill.warn{background:var(--accent2)}
+.timer-fill.crit{background:var(--danger);animation:pulse .5s infinite}
+.timer-num{font-family:var(--mono);font-size:13px;color:var(--dim);min-width:22px;text-align:right}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ---- Атмосферный фон-комната ---- */
+.room{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.room::before{content:"";position:absolute;width:60%;height:55%;left:-10%;top:-10%;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%);
+  filter:blur(40px);opacity:.5;animation:drift1 16s ease-in-out infinite}
+.room::after{content:"";position:absolute;width:55%;height:50%;right:-12%;bottom:-8%;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent2) 18%,transparent),transparent 70%);
+  filter:blur(46px);opacity:.4;animation:drift2 21s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,20px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-26px,-18px)}}
+/* пылинки в свете лампы */
+.mote{position:absolute;width:3px;height:3px;border-radius:50%;background:color-mix(in srgb,var(--accent) 60%,#fff);
+  opacity:.18;filter:blur(.4px);animation:mote linear infinite}
+.mote:nth-child(1){left:18%;animation-duration:15s;animation-delay:-2s}
+.mote:nth-child(2){left:34%;animation-duration:19s;animation-delay:-8s;width:2px;height:2px}
+.mote:nth-child(3){left:52%;animation-duration:13s;animation-delay:-5s}
+.mote:nth-child(4){left:66%;animation-duration:22s;animation-delay:-12s;width:2px;height:2px}
+.mote:nth-child(5){left:78%;animation-duration:17s;animation-delay:-3s}
+.mote:nth-child(6){left:88%;animation-duration:20s;animation-delay:-9s;width:4px;height:4px}
+.mote:nth-child(7){left:8%;animation-duration:24s;animation-delay:-15s;width:2px;height:2px}
+@keyframes mote{0%{transform:translateY(105vh) translateX(0)}100%{transform:translateY(-10vh) translateX(24px)}}
+
+/* ---- Сцена ---- */
+.play{justify-content:flex-start;padding-top:66px;gap:14px}
+/* въезд папки-дела и «включение» монитора */
+.file-panel{animation:fileIn .55s cubic-bezier(.2,.8,.25,1) both}
+.talk-panel{animation:monOn .6s ease-out both}
+@keyframes fileIn{0%{opacity:0;transform:translateY(-26px) rotate(-1.4deg)}60%{transform:translateY(4px) rotate(.4deg)}100%{opacity:1;transform:none}}
+@keyframes monOn{0%{opacity:0;filter:brightness(3) blur(2px)}12%{opacity:1;filter:brightness(3)}14%{filter:brightness(.4)}18%{filter:brightness(2.5)}100%{opacity:1;filter:none}}
+/* тряска экрана при штампе-вердикте */
+body.thunk .screen{animation:thunk .4s}
+@keyframes thunk{0%{transform:translate(0,0)}15%{transform:translate(3px,-4px) rotate(.3deg)}30%{transform:translate(-4px,3px) rotate(-.3deg)}50%{transform:translate(3px,2px)}70%{transform:translate(-2px,-2px)}100%{transform:translate(0,0)}}
+/* фото в деле слегка покачивается */
+.portrait{animation:sway 6s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(-1.4deg)}}
+.stage{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:14px;width:100%;max-width:960px;flex:1;min-height:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.panel-head{padding:11px 16px;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--accent);
+  border-bottom:1px solid var(--line);background:var(--panel2);display:flex;align-items:center;gap:8px}
+.panel-head .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.panel-head .dot.live{background:var(--danger);box-shadow:0 0 8px var(--danger);animation:pulse 1.4s infinite}
+.panel-body{padding:16px;overflow:auto;flex:1}
+
+/* ===== Левая панель — БУМАЖНОЕ ДЕЛО (арт-дирекция) ===== */
+:root{--paper:#ece4d0;--paper2:#e0d7bd;--ink:#2a2318;--ink-dim:#7c6e54;--stamp:#b23b2e;--paper-line:#c3b791}
+.file-panel{color:var(--ink);border:1px solid #b0a483;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 25px,rgba(120,95,55,.05) 25px 26px),
+    linear-gradient(150deg,#efe8d6,#ddd3b7);
+  box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 0 70px rgba(150,120,75,.14)}
+/* дырокол-поля слева */
+.file-panel::before{content:"";position:absolute;left:9px;top:64px;bottom:16px;width:12px;z-index:2;pointer-events:none;
+  background:radial-gradient(circle at 50% 0,#0000 0,#0000 5px,transparent 6px);
+  background:repeating-radial-gradient(circle,rgba(0,0,0,.28) 0 5px,transparent 6px 999px);
+  -webkit-mask:linear-gradient(#000,#000);mask:none}
+.file-panel{position:relative}
+.file-panel .panel-body{padding-left:30px}
+.file-panel .panel-head{background:#e6ddc4;border-bottom:2px solid var(--ink);color:var(--stamp);
+  font-weight:800;letter-spacing:3px;text-shadow:none}
+.file-panel .panel-head .dot{background:var(--stamp);box-shadow:none}
+
+.id-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+/* портрет — приклеенное фото в деле */
+.portrait{position:relative;width:92px;height:106px;flex:0 0 auto;border-radius:2px;overflow:visible;
+  background:#f7f2e4;border:5px solid #fbf8ee;box-shadow:0 5px 12px rgba(0,0,0,.45);transform:rotate(-2.5deg)}
+.portrait .face{border-radius:1px;overflow:hidden;filter:grayscale(.5) sepia(.22) contrast(1.06) brightness(.98)}
+.portrait::before{content:"";position:absolute;left:50%;top:-11px;width:44px;height:16px;transform:translateX(-50%) rotate(-3deg);
+  background:linear-gradient(#ffffffcc,#efe6cfcc);border:1px solid #0002;z-index:3}/* скотч */
+.cat-badge{position:absolute;right:-6px;bottom:-6px;font-size:20px;filter:drop-shadow(0 1px 2px #0007);z-index:3;transform:rotate(6deg)}
+.id-info{flex:1;min-width:0}
+.file-name{font-size:19px;font-weight:800;margin-bottom:8px;line-height:1.05;color:var(--ink)}
+.meta-grid{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:12.5px}
+.meta-k{color:var(--ink-dim);font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+.meta-v{word-break:break-word;color:var(--ink);font-weight:600}
+
+.evidence{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0 12px;
+  padding:8px 11px;background:#fffaec;border:1px dashed var(--paper-line);border-radius:4px}
+.evi-hint{font-size:11px;color:var(--ink-dim);line-height:1.3}
+.evi-count{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap}
+.evi-count b{color:var(--stamp)}
+
+/* вкладки — язычки папки */
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0;position:relative;z-index:1}
+.tab{background:#d3c8a8;border:1px solid #b0a483;border-bottom:none;color:var(--ink-dim);
+  font-size:11px;font-weight:700;padding:7px 11px;border-radius:6px 6px 0 0;letter-spacing:.3px;text-transform:uppercase}
+.tab:hover{color:var(--ink);background:#dccfae}
+.tab.active{background:#fbf6e8;color:var(--ink);box-shadow:inset 0 3px 0 var(--accent);position:relative;top:1px}
+.doc-pane{display:flex;flex-direction:column;gap:0;background:#fbf6e8;border:1px solid #b0a483;border-radius:0 4px 4px 4px;padding:6px}
+.doc-row{position:relative;display:flex;justify-content:space-between;gap:10px;font-size:13px;
+  padding:9px 34px 9px 10px;border-bottom:1px dotted var(--paper-line)}
+.doc-row:last-child{border-bottom:none}
+.doc-row.clickable{cursor:pointer;transition:background .1s}
+.doc-row.clickable:hover{background:#f2ead4}
+.doc-label{color:var(--ink-dim);font-family:var(--mono);font-size:11px;letter-spacing:.3px}
+.doc-value{text-align:right;font-weight:700;flex:1;color:var(--ink);font-family:var(--mono)}
+.doc-flag{position:absolute;right:9px;top:50%;transform:translateY(-50%);opacity:0;font-size:14px;transition:opacity .12s}
+/* отмеченная строка — обводка красным карандашом */
+.doc-row.flagged{background:rgba(178,59,46,.09)}
+.doc-row.flagged .doc-flag{opacity:1}
+.doc-row.flagged .doc-value{color:var(--stamp)}
+/* обводка красным карандашом — рисуется */
+.scribble{position:absolute;inset:1px 2px;width:calc(100% - 4px);height:calc(100% - 2px);pointer-events:none;overflow:visible;z-index:2}
+.scribble path{fill:none;stroke:var(--stamp);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:420;stroke-dashoffset:420;animation:draw .5s cubic-bezier(.6,.1,.3,1) forwards;filter:drop-shadow(0 1px 0 rgba(0,0,0,.15))}
+@keyframes draw{to{stroke-dashoffset:0}}
+/* смена вкладки — документы «въезжают» */
+.doc-pane.swap .doc-row{animation:rowIn .32s backwards}
+.doc-pane.swap .doc-row:nth-child(2){animation-delay:.05s}
+.doc-pane.swap .doc-row:nth-child(3){animation-delay:.1s}
+.doc-pane.swap .doc-row:nth-child(4){animation-delay:.15s}
+.doc-pane.swap .doc-row:nth-child(5){animation-delay:.2s}
+.doc-pane.swap .doc-row:nth-child(n+6){animation-delay:.25s}
+@keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.file-panel .btn-sm{margin:12px;background:#e6ddc4;border:1.5px solid var(--ink);color:var(--ink)}
+.file-panel .btn-sm:hover{background:#f2ead4;border-color:var(--stamp);color:var(--stamp)}
+
+/* разбор улик в вердикте */
+.clue-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.clue{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--danger);border-radius:8px;padding:8px 11px;display:flex;flex-direction:column;gap:3px}
+.clue-where{font-size:13px}.clue-where b{color:var(--danger)}
+.clue-note{font-size:12px;color:var(--dim);line-height:1.4}
+.accuracy{margin-top:10px;font-family:var(--mono);font-size:13px;color:var(--dim)}
+.accuracy b{color:var(--accent)}.accuracy .miss{color:var(--danger)}.accuracy .hit{color:var(--ok)}
+
+.talk-body{display:flex;flex-direction:column;gap:10px}
+.cues{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.cues-head{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--accent2);margin-bottom:6px}
+.cue{font-size:13px;color:var(--dim);margin:3px 0}
+.feed{display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:88%;padding:9px 13px;border-radius:12px;animation:bin .25s}
+@keyframes bin{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.bubble .who{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--dim);margin-bottom:3px}
+.bubble .txt{font-size:14.5px;line-height:1.45}
+.bubble.caller{background:var(--panel2);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:3px}
+.bubble.you{background:color-mix(in srgb,var(--accent) 16%,transparent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);align-self:flex-end;border-bottom-right-radius:3px}
+.bubble.system{background:transparent;border:1px dashed var(--line);align-self:center;color:var(--dim);font-size:12px;text-align:center}
+.bubble.typing{display:flex;gap:5px;align-items:center;padding:12px 15px}
+.bubble.typing span{width:7px;height:7px;border-radius:50%;background:var(--dim);opacity:.4;animation:typedot 1s infinite}
+.bubble.typing span:nth-child(2){animation-delay:.16s}.bubble.typing span:nth-child(3){animation-delay:.32s}
+@keyframes typedot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.talk-panel .skip{margin:0 12px 12px}
+
+.actions{display:flex;gap:12px;width:100%;max-width:960px}
+.actions.ready .big{animation:breathe 1.6s infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 3px rgba(255,255,255,.09)}}
+
+/* ---- Вердикт (штамп) ---- */
+.verdict-box{max-width:620px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;animation:fade .4s}
+.verdict-portrait{width:96px;height:108px;border-radius:14px;overflow:hidden;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--panel2),#0c1116);box-shadow:inset 0 0 30px rgba(0,0,0,.4)}
+.verdict-portrait.imp{border-color:var(--danger);box-shadow:0 0 24px color-mix(in srgb,var(--danger) 50%,transparent)}
+.verdict-portrait.imp .pupil{fill:#000;r:7}
+.verdict-portrait.imp .face{animation:facejit 1.6s infinite}
+.stamp{font-size:38px;font-weight:900;letter-spacing:4px;padding:8px 26px;border-radius:10px;
+  opacity:0;transform:scale(2.4) rotate(-14deg)}
+.stamp.hit{animation:stampin .3s forwards}
+@keyframes stampin{0%{opacity:0;transform:scale(2.4) rotate(-14deg)}70%{opacity:1;transform:scale(.94) rotate(-8deg)}100%{opacity:1;transform:scale(1) rotate(-8deg)}}
+.stamp.s-ok{color:var(--ok);border:4px double var(--ok)}
+.stamp.s-bad{color:var(--danger);border:4px double var(--danger)}
+.verdict-truth{font-size:18px;color:var(--dim)}
+.verdict-msg{font-size:16px;line-height:1.55;max-width:520px}
+.tells{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 20px;text-align:left;max-width:520px}
+.tells-head{font-family:var(--mono);font-size:12px;letter-spacing:1px;color:var(--accent2);margin-bottom:8px}
+
+/* ---- Overlay ---- */
+.overlay{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .2s}
+.overlay-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 28px;max-width:560px;max-height:82vh;overflow:auto}
+.overlay-card h3{color:var(--accent);margin:0 0 14px;letter-spacing:1px}
+
+/* ---- Jumpscare ---- */
+.jumpscare{position:fixed;inset:0;z-index:99;background:var(--danger);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  animation:scare .1s steps(2) 7}
+.jumpscare .face{width:min(60vw,420px);height:min(64vh,460px);animation:shake .08s infinite;filter:drop-shadow(0 0 40px #000)}
+.js-text{font-size:clamp(20px,5vw,44px);font-weight:900;letter-spacing:2px;color:#0b0d10;text-align:center;padding:0 16px}
+@keyframes scare{0%{filter:invert(0)}50%{filter:invert(1)}100%{filter:invert(0)}}
+@keyframes shake{0%{transform:translate(0,0) rotate(-2deg)}25%{transform:translate(-8px,5px) rotate(3deg)}50%{transform:translate(6px,-6px) rotate(-3deg)}75%{transform:translate(-5px,-4px) rotate(2deg)}100%{transform:translate(0,0)}}
+
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+
+@media (max-width:720px){
+  .stage{grid-template-columns:1fr;max-width:520px;overflow:auto}
+  .actions{max-width:520px}.big{font-size:15px;padding:14px}
+  .menu-peek{opacity:.1}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script>
+
+</script>
+<script>
+window.GAME_DATA = {
+  id: "dispatcher-112",
+  title: "ДИСПЕТЧЕР 112",
+  subtitle: "Ночная смена на пульте спасения. Один из голосов в трубке — не человек.",
+  credits: "verification-horror engine · ночной хоррор",
+
+  theme: {
+    bg: "#07090c", panel: "#101821", panel2: "#17222d", line: "#233240",
+    text: "#e7f0f6", dim: "#7a93a4", accent: "#3fb6d6", accent2: "#e0a13f",
+    ok: "#4fd67f", danger: "#e5545a"
+  },
+
+  timerSeconds: 42,
+  maxStrikes: 3,
+  strikeIcon: "✚",
+  livesLabel: "ПОГИБШИЕ БРИГАДЫ",
+  ranks: ["НОВИЧОК", "ДИСПЕТЧЕР", "СТАРШИЙ СМЕНЫ", "ГОЛОС НОЧИ", "ЛЕГЕНДА ПУЛЬТА"],
+
+  acceptLabel: "ОТПРАВИТЬ БРИГАДУ",
+  rejectLabel: "СБРОСИТЬ ВЫЗОВ",
+  legitWord: "НАСТОЯЩИЙ ВЫЗОВ",
+  imposterWord: "ЭТО (сущность на линии)",
+  correctTag: "ВЕРНО",
+  wrongTag: "ОШИБКА",
+  timeoutTag: "НЕ УСПЕЛ",
+  truthPrefix: "На линии был:",
+  fileTitle: "ДОСЬЕ ВЫЗОВА",
+  channelTitle: "ЛИНИЯ 112",
+  audioTitle: "🎧 ФОН НА ЛИНИИ",
+  tellsTitle: "НЕСТЫКОВКИ:",
+  inspectHint: "Кликай подозрительные строки — сверяй документы.",
+  caseWord: "ВЫЗОВ",
+  dayWord: "НОЧЬ",
+  dayEndWord: "КОНЕЦ НОЧИ",
+  nextDayLabel: "СЛЕДУЮЩАЯ НОЧЬ",
+  startShiftLabel: "ПРИНИМАТЬ ВЫЗОВЫ",
+  defaultAvatar: "☎",
+  scareFace: "👁",
+  scareText: "БРИГАДА УЖЕ ЕДЕТ. НА ТВОЙ АДРЕС.",
+  timeoutMsg: "Ты молчал слишком долго. Вызов сорвался, а тишина на линии стала гуще.",
+  speakerLabels: { caller: "ЗВОНЯЩИЙ", you: "ВЫ · ДИСПЕТЧЕР", system: "СИСТЕМА" },
+
+  intro: [
+    "03:00. Ты — Соколов, новый ночной диспетчер службы спасения 112 в старом районном центре.",
+    "Перед тобой пульт: карточки вызовов, база оператора связи, журнал прошлых обращений и карта зон вышек.",
+    "На столе оставлена записка от прежнего ночного диспетчера — Веретенникова, Пал Палыча. Двадцать лет на линии, легенда пульта. Три года назад он ответил на вызов по собственному адресу и не вернулся. С тех пор ночную смену никто не держал.",
+    "В записке одна строка: «Соколов. Не каждый голос в трубке — человек. Что-то на линии копирует голоса: тонущего, горящего, умирающего. И оно учится. Сверяй документы, а не верь ушам».",
+    "Оно звонит, плачет знакомым голосом и называет адрес. Отправишь бригаду — она приедет в пустой тёмный дом. И не вернётся.",
+    "Настоящую беду — спасай. Приманку — сбрасывай. До рассвета шесть ночей. Оно уже знает, что за пультом кто-то новый."
+  ],
+
+  howto: [
+    "Читай карточку вызова и сверяй её с базой оператора, журналом и картой района — переключай вкладки.",
+    "Кликай строки, которые противоречат друг другу: адрес ≠ адрес, категория ≠ фон, номер закреплён за тем, кого нет.",
+    "«ОТПРАВИТЬ БРИГАДУ» — если веришь, что на линии живой человек в беде.",
+    "«СБРОСИТЬ ВЫЗОВ» — если документы выдают сущность, которая выманивает бригаду в пустой дом.",
+    "Дрожащий голос, ребёнок, старик, паника, помехи — это НЕ улика. Настоящего человека за странность сбрасывать нельзя. Иногда за ночь Оно не звонит вовсе — тогда сбросить хоть один живой вызов уже проигрыш."
+  ],
+
+  protocolTitle: "ПРОТОКОЛ ПРИЁМА ВЫЗОВА",
+  protocol: [
+    "1. Адрес со слов обязан совпадать с адресом привязки номера в базе оператора. Расхождение при срочном вызове — красный флаг: бригаду шлют не туда, где беда.",
+    "2. При настоящей беде определитель номера открыт. Скрытый номер, «не определён», номер-заглушка или чужой абонент на срочном вызове — сверь с базой прежде, чем верить.",
+    "3. Фон на линии должен соответствовать категории. Пожар — это гул и треск; ДТП — улица и сигналы. Мёртвая тишина или «мне холодно» при заявленном пожаре — не сходится.",
+    "4. Журнал должен биться со словами. «Это снова я» при пустом журнале, номер закреплён за абонентом, умершим или отключённым год назад, линия деактивирована — это не повторный вызов, это Оно.",
+    "5. Зона вышки на карте должна соответствовать названному месту. Звонит «из торгового центра», а сигнал ловит вышка у леса — человек не может быть в двух местах.",
+    "6. Детали должны сходиться между собой и с логикой. Оно проговаривается: знает лишнее, видит сквозь стену, называет твоё имя, зовёт бригаду или тебя приехать «за тобой», повторяет твои же слова эхом.",
+    "7. Не сбрасывай человека за странность. Дрожь, спех, паника, детский или старческий голос, помехи, чужой телефон, знание врачебных деталей роднёй, домашний адрес ≠ место вызова — это горе и жизнь, а не улика. Улика — только доказанная нестыковка в документах."
+  ],
+
+  defaultCorrect: "Решение верное.",
+  defaultWrong: "Решение неверное.",
+  dayPerfect: "Ни одной ошибки за ночь. Все бригады вернулись. Все, кого можно было спасти, спасены.",
+  dayGood: "Почти чисто. Но на пульте 112 «почти» — это чья-то пустая машина у тёмного дома.",
+  dayBad: "Слишком много ты сегодня отправил не туда. Утром кто-то будет считать невернувшиеся бригады.",
+
+  days: [
+    {
+      day: 1, title: "НОЧЬ 1 · ПЕРВАЯ СМЕНА",
+      intro: "03:00. Дневная смена ушла. На пульте только ты, записка Веретенникова и первая волна вызовов. Пока Оно неуклюже — нестыковки лежат на поверхности.",
+      outro: "04:40. Первая волна схлынула. Настоящую Марину с Сиреневой спасли — а через пятнадцать минут кто-то её же голосом звал бригаду в пустую квартиру. Ты выдохнул. Но в наушниках, между вызовами, будто кто-то дышит.",
+      cases: ["d1c1", "d1c2", "d1c3", "d1c4", "d1c5"]
+    },
+    {
+      day: 2, title: "НОЧЬ 2 · ЧУЖИЕ ГОЛОСА",
+      intro: "Дневной оператор Аня оставила стикер: «Соколов, ночью проверяй номер по базе, даже если голос знакомый. Особенно если знакомый. И запиши в журнал всё — оно подслушивает настоящие вызовы».",
+      outro: "Под утро тебе позвонили дважды одним голосом — Оли, что спасала брата у пруда. Один раз настоящей. Один раз — нет. Разницу выдал только журнал. Оно учится копировать тех, кого ты уже слышал.",
+      cases: ["d2c1", "d2c2", "d2c3", "d2c4", "d2c5"]
+    },
+    {
+      day: 3, title: "НОЧЬ 3 · НОЧЬ, КОГДА ОНО МОЛЧАЛО",
+      intro: "В записке Веретенникова есть строка, которую ты перечитал: «Бойся тихих ночей. Когда Оно не звонит — оно слушает и учит твой голос. В такую ночь все вызовы настоящие. Сбросишь хоть один живой — и в следующую ночь оно заговорит уже как ты».",
+      outro: "05:00. За всю ночь — ни одной приманки. Каждый голос был живым, каждая беда — настоящей. И именно поэтому тебе не по себе: Оно не звонило. Оно записывало. Как ты говоришь «бригада уже едет».",
+      cases: ["d3c1", "d3c2", "d3c3", "d3c4", "d3c5"]
+    },
+    {
+      day: 4, title: "НОЧЬ 4 · МЁРТВЫЕ ЛИНИИ",
+      intro: "02:00. Система третью ночь фиксирует короткие щелчки-звонки с номера, чей абонент мёртв почти год. Сегодня этот номер впервые заговорил. А ещё оживают отключённые линии, законсервированные посты, чужие корпоративные номера.",
+      outro: "03:50. Последний сброшенный вызов пришёл с мёртвого номера Назарова — и, отключаясь, голос произнёс не адрес. Он произнёс фамилию. «Веретенников». Так, будто звал наставника обратно. Или предупреждал, чьим голосом заговорит завтра.",
+      cases: ["d4c1", "d4c2", "d4c3", "d4c4", "d4c5"]
+    },
+    {
+      day: 5, title: "НОЧЬ 5 · ОНО ЗНАЕТ ЛИШНЕЕ",
+      intro: "Голоса теперь почти безупречны. Ищи не дрожь и не панику — ищи то, чего звонящий знать не должен, и то, что не бьётся во вкладках. Сегодня оно позвонит голосом ребёнка, которого ты уже спасал. И голосом человека, которого нет три года.",
+      outro: "04:30. Оно позвонило голосом Пал Палыча — тёплым, знакомым по обучающим записям. Звало «показать, куда уходят вызовы». Ты положил трубку на живого наставника — потому что живого наставника нет. А напоследок тишина в наушниках произнесла твоё имя. Соколов.",
+      cases: ["d5c1", "d5c2", "d5c3", "d5c4", "d5c5"]
+    },
+    {
+      day: 6, title: "НОЧЬ 6 · ПО ИМЕНИ",
+      intro: "05:00. Последняя ночь по контракту. Оно перестало притворяться чужими. Теперь оно звонит, чтобы позвать тебя, Соколов, — как когда-то позвало Веретенникова. Держи протокол перед глазами: сегодня улики тонкие и глубоко, а один вызов будет настоящим до самого конца.",
+      outro: "06:10. За окном сереет. Линия молчит. Ты снимаешь наушники — и впервые за шесть ночей в них не дышат. Ты не пошёл на свой адрес. Смена окончена.",
+      cases: ["d6c1", "d6c2", "d6c3", "d6c4", "d6c5"]
+    }
+  ],
+
+  cases: [
+    /* ================= НОЧЬ 1 — зацепки на поверхности (2 самозванца) ================= */
+    {
+      id: "d1c1", name: "Марина, 34 · кухня горит", avatar: "🔥",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 03:11",
+      meta: { "Телефон": "+7 903 118-24-09", "Категория": "пожар в квартире" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Сиреневая, 8, кв. 41" },
+          { label: "Категория", value: "пожар (загорелось масло на плите)" },
+          { label: "Людей в квартире", value: "двое: она и сын 5 лет" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 903 118-24-09" },
+          { label: "Адрес привязки номера", value: "ул. Сиреневая, 8, кв. 41" },
+          { label: "Абонент", value: "Соловьёва М. А. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Сиреневая–Ольховая (совпадает)" },
+          { label: "Рядом", value: "жилые дома, детсад" }
+        ]}
+      ],
+      audioCues: ["громкий треск и гул огня", "детский плач на фоне", "срабатывает пожарный датчик — писк"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Алло! У меня плита, масло вспыхнуло, шторы уже занялись! Сиреневая, восемь, сорок первая!" },
+        { who: "you", text: "Спокойно, бригада выезжает. Вы с ребёнком можете выйти на лестницу?" },
+        { who: "caller", text: "Да-да, беру Мишку, выходим! Только скорее, тут дым уже!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Бригада прибыла за шесть минут, потушила очаг. Марина с сыном Мишкой ждали во дворе. Живые. Запомни этот голос — он ещё вернётся.",
+      feedbackWrong: "Ты сбросил горящую квартиру. Утром на месте кв. 41 работал уже не расчёт, а следователь. Голос был настоящим."
+    },
+    {
+      id: "d1c2", name: "«Марина» снова · пожар", avatar: "🔥", avatarClass: "glitch",
+      expression: "calm",
+      channelTitle: "ЛИНИЯ 112 · 03:29",
+      meta: { "Телефон": "не определён", "Категория": "пожар в квартире" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Сиреневая, 8, кв. 41" },
+          { label: "Категория", value: "пожар (горит вся комната)",
+            flag: true, note: "Категория «пожар», но фон на линии — мёртвая тишина, а звонящая говорит «мне холодно». Огонь так не звучит (протокол 3)." },
+          { label: "Людей в квартире", value: "одна, без ребёнка" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "не определён",
+            flag: true, note: "На срочном пожаре номер скрыт/не определяется. Настоящий вызов Марины пятнадцать минут назад шёл с открытого номера (протокол 2)." },
+          { label: "Адрес привязки номера", value: "нет данных (номер не определён)" },
+          { label: "Абонент", value: "—" },
+          { label: "Статус SIM", value: "—" }
+        ]}
+      ],
+      audioCues: ["полная тишина на фоне", "ни треска, ни дыма, ни датчика", "голос ровный, будто читает"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель НЕ открыт." },
+        { who: "caller", text: "Это снова я. Горит вся комната. Приезжайте. Мне холодно." },
+        { who: "you", text: "Холодно? Вы же говорите, что горит. И где Мишка — вы были с сыном. Слышу тишину, где треск огня?" },
+        { who: "caller", text: "Приезжайте. Сиреневая, восемь, сорок первая. Я жду вас внутри. Дверь открыта." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты сбросил. Настоящую Марину уже спасли — с открытого номера, с сыном. Это звало бригаду в пустую квартиру голосом, который подслушало пятнадцать минут назад. Первая копия за смену.",
+      feedbackWrong: "Расчёт въехал во двор Сиреневой, 8. Свет в сорок первой не горел. Дверь была открыта. Внутри — холодно и пусто. Обратно вернулась не вся бригада."
+    },
+    {
+      id: "d1c3", name: "Пётр Ильич, 78 · жене плохо", avatar: "💔",
+      expression: "tired",
+      channelTitle: "ЛИНИЯ 112 · 03:52",
+      meta: { "Телефон": "+7 900 447-15-63", "Категория": "сердечный приступ" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "пер. Тихий, 4 (частный дом)" },
+          { label: "Категория", value: "жене плохо с сердцем, давит грудь" },
+          { label: "Людей в доме", value: "двое: он и супруга" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 900 447-15-63" },
+          { label: "Адрес привязки номера", value: "пер. Тихий, 4 (совпадает)" },
+          { label: "Абонент", value: "Гаврилов П. И., 78 лет (совпадает)" },
+          { label: "Статус SIM", value: "активна, стационарная привязка" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Прошлые вызовы", value: "вызов скорой 2 мес. назад (гипертония супруги)" },
+          { label: "Пометка", value: "пожилая пара, дом с зелёной калиткой, собака во дворе" }
+        ]}
+      ],
+      audioCues: ["старик говорит медленно, путает слова", "на фоне тихо стонет женщина", "лает собака во дворе"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Дочка... то есть, девушка... жене плохо, за грудь держится, губы синие. Я не знаю, что делать." },
+        { who: "you", text: "Пётр Ильич, я вижу вас в базе. Уложите её, дайте таблетку под язык, если есть. Бригада уже едет." },
+        { who: "caller", text: "Тихий переулок, четыре, зелёная калитка. Собаку я закрою. Только успейте, родные..." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Скорая застала Петра Ильича у калитки с фонариком. Инфаркт сняли вовремя. Он потом принёс на пульт банку мёда — «молодому диспетчеру, чтоб не спал».",
+      feedbackWrong: "Ты сбросил старика, потому что он путался в словах. Он путался от страха. Утром в переулке Тихом, 4 приспустили занавески. Голос был живой."
+    },
+    {
+      id: "d1c4", name: "Костя, 19 · авария на трассе", avatar: "🚗", avatarClass: "glitch",
+      expression: "tense",
+      channelTitle: "ЛИНИЯ 112 · 04:18",
+      meta: { "Телефон": "+7 962 330-90-11", "Категория": "ДТП" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "объездная трасса, 12-й км, у заправки" },
+          { label: "Категория", value: "перевернулась машина, есть зажатый" },
+          { label: "Пострадавших", value: "двое" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 962 330-90-11" },
+          { label: "Адрес привязки номера", value: "ул. Заводская, 2, кв. 7 (домашний адрес абонента)" },
+          { label: "Абонент", value: "Ерёмин К. С., 19 лет" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор ДВОРЫ Заводской ул., радиус 300 м",
+            flag: true, note: "Звонит якобы с 12-го км объездной трассы, но сигнал ловит вышка в жилом квартале на Заводской. Трасса — в другом секторе, за 9 км. В двух местах человек быть не может (протокол 5)." },
+          { label: "Рядом", value: "многоэтажки, двор, детская площадка — не трасса" }
+        ]}
+      ],
+      audioCues: ["голос напряжён, но фон — тихий двор", "ни трассы, ни машин, ни ветра", "где-то капает вода в подъезде"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Тут авария, машина на крыше, парня зажало! Двенадцатый километр объездной, у заправки!" },
+        { who: "you", text: "Костя, слышу тихо, будто ты в подъезде. На трассе так не бывает — где шум машин?" },
+        { who: "caller", text: "Просто приезжайте на трассу. Двенадцатый километр. Я буду там стоять и ждать вас." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ты сверил карту: сигнал шёл из спального квартала, а не с трассы. Сбросил. Никакой аварии на 12-м км не было. Оно рисовало место, куда некому ехать.",
+      feedbackWrong: "Бригада умчалась на пустой 12-й км объездной. Ни машины, ни парня. А по адресу вышки, в тёмном дворе Заводской, кто-то стоял и ждал именно их."
+    },
+    {
+      id: "d1c5", name: "Женя, 22 · у друга анафилаксия", avatar: "💉",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 04:33",
+      meta: { "Телефон": "+7 950 771-40-62", "Категория": "аллергия / удушье" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "общежитие мед. колледжа, ул. Учебная, 5, комн. 314" },
+          { label: "Категория", value: "друг случайно съел орех, отёк лица и горла, задыхается" },
+          { label: "Людей в комнате", value: "двое: он и пострадавший" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 950 771-40-62" },
+          { label: "Адрес привязки номера", value: "ул. Учебная, 5 (общежитие, совпадает)" },
+          { label: "Абонент", value: "Кузьмина Е. П. (звонящая, Женя)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Учебная–Студгородок (совпадает)" },
+          { label: "Рядом", value: "общежития, столовая, аптека 24 часа через дорогу" }
+        ]}
+      ],
+      audioCues: ["громкое свистящее дыхание пострадавшего рядом", "Женя частит, роняет телефон", "гулкий коридор общаги, хлопают двери"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Он орех съел, лицо раздуло, губы синеют, хрипит! Учебная, пять, общага, комната триста четырнадцать!" },
+        { who: "you", text: "Женя, у него есть автоинъектор, красная ручка? В аптеке напротив он есть — беги. Бригада уже выехала." },
+        { who: "caller", text: "Бегу! Держись, дыши! Ой, только не отключайтесь, я не знаю, что делать!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Красная селёдка — звонит не пострадавший, а друг: это норма. Адрес, абонент, вышка совпали, фон — настоящее удушье. Адреналин из ночной аптеки успел. Отёк спал. Оба живы.",
+      feedbackWrong: "Ты сбросил, потому что звонил «не тот, кому плохо». Но за друга звать помощь — нормально. В комнате 314 парень задохнулся, пока Женя кричала в мёртвую трубку."
+    },
+
+    /* ================= НОЧЬ 2 — чужие голоса (1 самозванец) ================= */
+    {
+      id: "d2c1", name: "Оля, 27 · тонет брат", avatar: "🌊",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 01:04",
+      meta: { "Телефон": "+7 921 556-70-88", "Категория": "утопление" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "городской пруд, лодочная станция" },
+          { label: "Категория", value: "брат провалился под лёд, держится за край" },
+          { label: "Пострадавших", value: "один в воде, один на берегу" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 921 556-70-88" },
+          { label: "Адрес привязки номера", value: "ул. Набережная, 3 (у пруда)" },
+          { label: "Абонент", value: "Крылова О. В. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Набережная–Пруд (совпадает)" },
+          { label: "Рядом", value: "лодочная станция, пирс, зимой каток" }
+        ]}
+      ],
+      audioCues: ["резкий ветер, плеск воды", "мужской крик издалека", "зубы стучат от холода"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Он провалился! Держится за лёд, я не могу дотянуться! Пруд, у лодочной станции!" },
+        { who: "you", text: "Оля, не выходи на лёд сама! Кинь ему что-нибудь — шарф, ветку. Спасатели уже в пути." },
+        { who: "caller", text: "Кидаю куртку! Держись, слышишь! Быстрее, он синеет!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Спасатели вытащили парня баграми. Переохлаждение, но живой. Оля держала его голос на связи, чтоб не отключился. Запиши вызов в журнал — это важнее, чем кажется.",
+      feedbackWrong: "Ты сбросил вызов у пруда. Наутро на льду нашли одну куртку и одну полынью. Всё в карточке сходилось. Это была настоящая беда."
+    },
+    {
+      id: "d2c2", name: "Люба, 36 · ребёнка обварило", avatar: "♨",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 01:47",
+      meta: { "Телефон": "+7 917 330-58-14", "Категория": "ожог кипятком" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Восход, 12, кв. 5" },
+          { label: "Категория", value: "сорвало кран с кипятком, дочь ошпарило руку и грудь" },
+          { label: "Людей в квартире", value: "двое: мать и дочь 4 лет" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 917 330-58-14" },
+          { label: "Адрес привязки номера", value: "ул. Восход, 12, кв. 5 (совпадает)" },
+          { label: "Абонент", value: "Панкратова Л. С. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Прошлые вызовы", value: "вызов аварийной службы 3 недели назад — жалоба на давление в стояке (норма)" },
+          { label: "Пометка", value: "старый дом, изношенные трубы; УК в курсе" }
+        ]}
+      ],
+      audioCues: ["громкий детский крик, льётся вода", "мать частит, срывается на плач", "шипит и капает горячая вода из трубы"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес совпал." },
+        { who: "caller", text: "Кран сорвало, кипяток! Дашеньку обварило, рука красная, кожа пузырём! Восход, двенадцать, пятая!" },
+        { who: "you", text: "Люба, лейте на ожог прохладную воду минут десять, не мажьте ничем. Бригада и аварийка уже едут." },
+        { who: "caller", text: "Лью, лью! Она орёт, я сама трясусь! Только скорее, тут вода везде, горячая!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Всё сошлось: адрес, абонент, вышка. Журнал даже объясняет причину — изношенный стояк. Крик и паника матери — не улика, а горе. Ожог обработали, кожу спасли.",
+      feedbackWrong: "Ты принял крик и хаос за подделку. Но так и звучит настоящая беда с ребёнком. На Восходе, 12 мать до утра сама лила воду на ожог, боясь, что бригада не приедет."
+    },
+    {
+      id: "d2c3", name: "Рустам, 28 · провалился в люк", avatar: "🕳",
+      expression: "tense",
+      channelTitle: "ЛИНИЯ 112 · 02:36",
+      meta: { "Телефон": "+7 962 774-05-19", "Категория": "падение в люк / перелом" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "двор ул. Металлургов, 7, у трансформаторной будки" },
+          { label: "Категория", value: "провалился в открытый канализационный люк, нога сломана, не выбраться" },
+          { label: "Пострадавших", value: "один в люке, звонит прохожий сверху" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 962 774-05-19" },
+          { label: "Адрес привязки номера", value: "ул. Гончарова, 40 (домашний адрес прохожего)" },
+          { label: "Абонент", value: "Сафин Д. Р. (прохожий, помогает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Металлургов–Двор (совпадает с местом вызова)" },
+          { label: "Рядом", value: "жилые дома, коммунальные сети, вскрытый люк — жалобы в УК есть" }
+        ]}
+      ],
+      audioCues: ["гулкий голос снизу, из колодца, эхо", "прохожий сверху окликает: «держись, братан, звоню!»", "капает вода в коллекторе"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Тут парень в люк провалился, орёт снизу, нога вывернута! Я мимо шёл, звоню с себя. Металлургов, семь, у будки!" },
+        { who: "you", text: "По базе ваш адрес другой — но это нормально, вы проходили мимо. Вышка подтверждает Металлургов. Он в сознании?" },
+        { who: "caller", text: "В сознании, матерится, значит живой! Люк открытый был, ни ограждения, ничего. Скорее, глубоко там!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Красная селёдка — домашний адрес абонента ≠ место: но звонит прохожий, а вышка подтверждает двор Металлургов. Чужой телефон при совпадении зоны — норма. Рустама подняли из колодца, ногу спасли.",
+      feedbackWrong: "Ты сбросил, потому что адрес абонента не совпал с местом. Но помощь зовут и незнакомцы. Рустам просидел в холодном коллекторе до утра, пока его не услышал дворник."
+    },
+    {
+      id: "d2c4", name: "Даша, 6 · мама не встаёт", avatar: "👶",
+      expression: "sad",
+      channelTitle: "ЛИНИЯ 112 · 03:03",
+      meta: { "Телефон": "+7 911 604-22-17", "Категория": "человек без сознания" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "«наш дом, где качели» — ребёнок не знает улицу" },
+          { label: "Категория", value: "мама лежит и не отвечает, дышит" },
+          { label: "Людей в квартире", value: "мама и ребёнок 6 лет" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 911 604-22-17" },
+          { label: "Адрес привязки номера", value: "ул. Космонавтов, 14, кв. 88" },
+          { label: "Абонент", value: "Титова Е. С. (мама)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Космонавтов, двор с качелями (совпадает с базой)" },
+          { label: "Рядом", value: "детская площадка с качелями — как и говорит ребёнок" }
+        ]}
+      ],
+      audioCues: ["детский голос, всхлипывает", "тихое ровное дыхание взрослого на фоне", "работает мультик по телевизору"],
+      transcript: [
+        { who: "system", text: "Входящий вызов с номера мамы. Определитель открыт." },
+        { who: "caller", text: "Тётя, мама легла и не встаёт. Я её трясу, а она спит с открытыми глазами." },
+        { who: "you", text: "Умница, что позвонила. Мама дышит? Ты знаешь, где вы живёте?" },
+        { who: "caller", text: "Дышит. Улицу не знаю... у нас во дворе качели. На телефоне мамы я нажала зелёную кнопку." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Адрес взяли из базы по номеру мамы, двор с качелями совпал с картой. Диабетический криз, успели. Даша открыла дверь, встав на табуретку. Запомни этот голос — Оно тоже его слышало.",
+      feedbackWrong: "Ты сбросил ребёнка, потому что она не знала адреса. Адрес был в базе по номеру матери. К утру на Космонавтов, 14 приехали, но поздно. Дети не звонят из пустых домов."
+    },
+    {
+      id: "d2c5", name: "«Оля» снова · опять пруд", avatar: "🌊", avatarClass: "glitch",
+      expression: "smug",
+      channelTitle: "ЛИНИЯ 112 · 04:22",
+      meta: { "Телефон": "+7 921 556-70-88", "Категория": "утопление (повтор?)" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "городской пруд, лодочная станция" },
+          { label: "Категория", value: "«он опять тонет, это снова я»" },
+          { label: "Пострадавших", value: "«тот же, что и в прошлый раз»" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 921 556-70-88 (тот же номер, что у Оли)" },
+          { label: "Адрес привязки номера", value: "ул. Набережная, 3 (совпадает)" },
+          { label: "Абонент", value: "Крылова О. В." },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Вызовы с этого номера сегодня", value: "01:04 — Крылова О. В., утопление у пруда, брат спасён, ЗАКРЫТ",
+            flag: true, note: "В журнале настоящий вызов Оли уже закрыт: брата спасли три часа назад. «Он опять тонет» — того же человека второй раз за ночь из той же полыньи не бывает (протокол 4)." },
+          { label: "Фон при этом вызове", value: "тишина — хотя «пруд, зима, ветер»",
+            flag: true, note: "У настоящей Оли в 01:04 на фоне были ветер и плеск воды. Сейчас — мёртвая тишина при том же заявленном месте. Категория не бьётся с фоном (протокол 3)." }
+        ]}
+      ],
+      audioCues: ["голос копирует интонации Оли, но фон — та же тишина", "ни ветра, ни воды, хотя «пруд»", "«он опять тонет» — но никакого крика на фоне"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Это снова я. Он опять тонет, как в тот раз. Приезжайте к пруду, вы же помните дорогу." },
+        { who: "you", text: "Оля, твой брат уже спасён — вызов закрыт в час ночи. И тишина вместо пруда. Это не ты." },
+        { who: "caller", text: "Потому что я жду вас. Как в тот раз. Идите на лёд. Прямо на середину, ко мне." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Журнал закрыл вызов Оли ещё в 01:04, а фон — мёртвая тишина вместо пруда. Оно подслушало настоящий вызов и повторило его голосом Оли как приманку. Сбросил. На лёд никто не пошёл.",
+      feedbackWrong: "Спасатели вышли на середину пруда «как в тот раз». Но тот раз был закрыт три часа назад. Лёд под ними держал ровно до середины."
+    },
+
+    /* ================= НОЧЬ 3 — ночь, когда Оно молчало (0 самозванцев) ================= */
+    {
+      id: "d3c1", name: "Артём, 30 · ударило током", avatar: "⚡",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 00:41",
+      meta: { "Телефон": "+7 926 145-88-72", "Категория": "электротравма" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "гаражный кооператив «Мотор», бокс 44" },
+          { label: "Категория", value: "напарника ударило током от сварки, без сознания" },
+          { label: "Пострадавших", value: "один, второй звонит" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 926 145-88-72" },
+          { label: "Адрес привязки номера", value: "ул. Механизаторов, 9 (домашний)" },
+          { label: "Абонент", value: "Лаптев А. Д." },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор ГК «Мотор» / гаражи, вышка Г-3 (совпадает с местом вызова)" },
+          { label: "Рядом", value: "гаражи, автосервисы — как и сказано" }
+        ]}
+      ],
+      audioCues: ["голос дрожит, паникует", "гул генератора, запах гари проговаривает", "рядом хлопочет — «Дим, Дим, очнись!»"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Диму током дёрнуло от сварочника! Не дышит толком! Гаражи «Мотор», сорок четвёртый бокс!" },
+        { who: "you", text: "Домашний адрес по базе другой — но звоните-то из гаражей, вышка это подтверждает. Он дышит?" },
+        { who: "caller", text: "Еле-еле! Я его на пол уложил. Скорее, тут генератор искрит, страшно!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Домашний адрес ≠ место — так и должно быть: человек в гараже, а не дома. Вышка подтвердила гаражи. Диме завели сердце разрядом. Артём не отходил от него.",
+      feedbackWrong: "Ты сбился из-за того, что домашний адрес ≠ место вызова. Но люди звонят не только из дома. Вышка ясно показывала гаражи. В боксе 44 Дима так и не дождался помощи."
+    },
+    {
+      id: "d3c2", name: "Нина, 60 · упала с лестницы", avatar: "🩹",
+      expression: "tired",
+      channelTitle: "ЛИНИЯ 112 · 01:29",
+      meta: { "Телефон": "+7 902 318-55-24", "Категория": "падение / перелом" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Садовая, 7, второй подъезд, 3 этаж" },
+          { label: "Категория", value: "упала на лестнице, нога вывернута, не встать" },
+          { label: "Людей", value: "одна, соседи стучат за стеной" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 902 318-55-24" },
+          { label: "Адрес привязки номера", value: "ул. Садовая, 7, кв. 34 (совпадает, тот же дом)" },
+          { label: "Абонент", value: "Жукова Н. П. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Садовая–Центр (совпадает)" },
+          { label: "Рядом", value: "жилые дома, аптека" }
+        ]}
+      ],
+      audioCues: ["голос от боли прерывается, ойкает", "слышно, как стучат соседи в стену", "тикают настенные часы"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес и абонент совпали." },
+        { who: "caller", text: "Ой... я с лестницы навернулась, нога подвёрнута, встать не могу. Садовая, семь, третий этаж." },
+        { who: "you", text: "Нина Петровна, вижу вас в базе, тот же дом. Не двигайтесь, лежите. Соседям крикните, чтоб открыли." },
+        { who: "caller", text: "Крикнула, стучат уже. Ох, больно... спасибо, милые, жду." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Всё сошлось: адрес, абонент, вышка. Красная селёдка — что упала не в своей квартире (34), а на лестнице между этажами. Это норма. Перелом шейки бедра, увезли вовремя.",
+      feedbackWrong: "Ты сбросил её, придравшись, что упала не в своей квартире. Люди падают и на лестнице. Нина Петровна пролежала на площадке до утра, пока не нашли соседи."
+    },
+    {
+      id: "d3c3", name: "Марат, 40 · собака порвала ногу", avatar: "🐕",
+      expression: "tense",
+      channelTitle: "ЛИНИЯ 112 · 02:34",
+      meta: { "Телефон": "+7 927 810-33-46", "Категория": "нападение животного" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "промзона, ул. Складская, 5, у ворот базы" },
+          { label: "Категория", value: "бродячая свора порвала ногу сторожу, кровь" },
+          { label: "Пострадавших", value: "один, звонит коллега" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 927 810-33-46" },
+          { label: "Адрес привязки номера", value: "ул. Заречная, 40 (домашний адрес)" },
+          { label: "Абонент", value: "Хайруллин М. Р." },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор промзона «Складская», вышка С-4 (совпадает с местом вызова)" },
+          { label: "Рядом", value: "склады, базы, стая бродячих собак известна УК" }
+        ]}
+      ],
+      audioCues: ["агрессивный лай стаи, рычание совсем рядом", "мужской стон, «держи их палкой!»", "лязг ворот, ветер в промзоне"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Свора накинулась на нашего сторожа, ногу порвали, кровь хлещет! Складская, пять, у ворот базы!" },
+        { who: "you", text: "Домашний адрес по базе другой — но вышка подтверждает промзону. Собак слышу. Жгут наложить можете?" },
+        { who: "caller", text: "Да, ремнём затягиваю! Отгоняю их палкой! Ворота открою, чтоб машина заехала. Скорее!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Домашний адрес ≠ место — норма, человек на работе в промзоне, и вышка это подтвердила. Лай стаи настоящий, свора известна. Сторожа зашили, ногу спасли.",
+      feedbackWrong: "Ты сбросил из-за несовпадения домашнего адреса с местом вызова. Но люди работают не по прописке, а вышка показывала промзону верно. Сторож потерял много крови у ворот базы."
+    },
+    {
+      id: "d3c4", name: "Тамара, 55 · астма, задыхается", avatar: "🫁",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 03:22",
+      meta: { "Телефон": "+7 906 274-91-30", "Категория": "приступ астмы" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Клубничная, 21, кв. 2 (первый этаж)" },
+          { label: "Категория", value: "приступ астмы, ингалятор кончился, не хватает воздуха" },
+          { label: "Людей", value: "одна" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 906 274-91-30" },
+          { label: "Адрес привязки номера", value: "ул. Клубничная, 21, кв. 2 (совпадает)" },
+          { label: "Абонент", value: "Белкина Т. Г. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Прошлые вызовы", value: "вызов год назад — тоже астма, купировали" },
+          { label: "Пометка", value: "бронхиальная астма, живёт одна, ключ у соседки из кв. 4" }
+        ]}
+      ],
+      audioCues: ["свистящее дыхание, хрипы на выдохе", "с трудом договаривает слова", "шуршит пустым ингалятором"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес совпал." },
+        { who: "caller", text: "Не... могу... дышать. Ингалятор... пустой. Клубничная... двадцать один... вторая." },
+        { who: "you", text: "Тамара Георгиевна, вижу вас, ключ у соседки из четвёртой. Сядьте прямо, плечи расслабьте. Бригада едет." },
+        { who: "caller", text: "Соседка... да... разбужу. Только... скорее... воздуха нет..." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Свист и обрывистая речь — это сам приступ астмы, а не подделка. Всё в документах сошлось, журнал подтвердил диагноз. Успели с небулайзером. Дышит.",
+      feedbackWrong: "Ты принял хрипы и рваную речь астматика за уловку Оно. Но так и звучит удушье. К утру дверь кв. 2 открыла соседка своим ключом. Слишком поздно."
+    },
+    {
+      id: "d3c5", name: "Валера, 47 · сбил лося на трассе", avatar: "🚙",
+      expression: "tense",
+      channelTitle: "ЛИНИЯ 112 · 04:18",
+      meta: { "Телефон": "+7 913 660-77-05", "Категория": "ДТП с животным" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "объездная трасса, 12-й км, у заправки" },
+          { label: "Категория", value: "сбил лося, машина в кювете, пассажир ударился головой" },
+          { label: "Пострадавших", value: "один (пассажир), водитель на ногах" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 913 660-77-05" },
+          { label: "Адрес привязки номера", value: "ул. Заводская, 15, кв. 3 (домашний)" },
+          { label: "Абонент", value: "Гущин В. Л." },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор ОБЪЕЗДНАЯ ТРАССА, 12-й км, вышка Т-1 (совпадает с местом вызова)" },
+          { label: "Рядом", value: "заправка, трасса, кювет, лес вдоль дороги" }
+        ]}
+      ],
+      audioCues: ["мимо с рёвом проходят фуры, гудят", "ветер на открытой трассе", "водитель дышит тяжело, но говорит связно"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Лось на дорогу выскочил, я в кювет ушёл! Жену об стойку приложило, кровь на лбу, зовут, но вялая! Двенадцатый км объездной, у заправки!" },
+        { who: "you", text: "Домашний адрес другой — но вышка показывает саму трассу, 12-й км. Слышу фуры. Не двигайте её, шею не поворачивайте. Едем." },
+        { who: "caller", text: "Понял, держу голову! Аварийку выставил, фарами мигаю. Лось там же лежит, страшно, скорее!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "В отличие от той фальшивки на 12-м км, здесь вышка ловит именно трассу, фон — фуры и ветер. ДТП бывает настоящим. Пассажирку с сотрясением увезли вовремя.",
+      feedbackWrong: "Ты решил, что «12-й км объездной» — снова приманка, как в первую ночь. Но тогда сигнал шёл из двора, а сейчас — с самой трассы. В кювете женщина с травмой головы осталась ждать."
+    },
+
+    /* ================= НОЧЬ 4 — мёртвые линии (3 самозванца) ================= */
+    {
+      id: "d4c1", name: "Семья Р. · угарный газ", avatar: "🏠",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 00:22",
+      meta: { "Телефон": "+7 917 442-63-90", "Категория": "отравление угарным газом" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "с. Берёзовка, ул. Дачная, 11 (частный дом, печь)" },
+          { label: "Категория", value: "угорели, тошнит, ребёнку плохо, заслонку рано закрыли" },
+          { label: "Людей в доме", value: "трое: родители и ребёнок" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 917 442-63-90" },
+          { label: "Адрес привязки номера", value: "с. Берёзовка, ул. Дачная, 11 (совпадает)" },
+          { label: "Абонент", value: "Рожкова Т. И. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Прошлые вызовы", value: "прошлой зимой — вызов по печному отоплению (норма)" },
+          { label: "Пометка", value: "печной дом, зимой топят дровами" }
+        ]}
+      ],
+      audioCues: ["голос вялый, заторможенный — как при отравлении CO", "на фоне слабо плачет ребёнок", "потрескивает остывающая печь"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес совпал." },
+        { who: "caller", text: "Голова раскалывается, тошнит всех... кажется, угорели. Заслонку рано закрыла. Ребёнок вялый." },
+        { who: "you", text: "Немедленно откройте окна и двери, выведите всех на воздух! Бригада уже выехала в Берёзовку." },
+        { who: "caller", text: "Открываю... шатает сильно. Дачная, одиннадцать. Мы во дворе будем, у калитки." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Всё сходится, журнал подтверждает печной дом. Заторможенность — симптом отравления CO, а не улика. Семью вынесли на воздух, откачали кислородом. Успели.",
+      feedbackWrong: "Ты принял вялый голос за подделку. Это был угарный газ, он и делает голос таким. К утру дом на Дачной, 11 стоял с распахнутыми окнами. Слишком поздно распахнутыми."
+    },
+    {
+      id: "d4c2", name: "Охранник ТЦ · пожар в «Меридиане»", avatar: "🏬", avatarClass: "glitch",
+      expression: "calm",
+      channelTitle: "ЛИНИЯ 112 · 01:15",
+      meta: { "Телефон": "+7 495 000-11-22", "Категория": "пожар в ТЦ, массовое" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ТЦ «Меридиан», пр. Ленина, 60, горит фудкорт" },
+          { label: "Категория", value: "пожар, задымление, эвакуация 200+ человек",
+            flag: true, note: "Заявлен пожар с эвакуацией 200 человек в час ночи, но фон — гробовая тишина: ни сирены эвакуации, ни толпы, ни треска. Такой пожар так не звучит (протокол 3)." },
+          { label: "Людей", value: "«больше двухсот»" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 495 000-11-22" },
+          { label: "Адрес привязки номера", value: "ТЦ «Меридиан», пост охраны (совпадает)" },
+          { label: "Абонент", value: "ЧОП «Барьер» (пост)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Режим ТЦ", value: "«Меридиан» закрывается в 22:00; ночью внутри только 1 охранник",
+            flag: true, note: "В 01:15 в закрытом ТЦ физически не может быть 200 посетителей на эвакуации — ночью там один охранник. Число людей не бьётся с режимом работы (протокол 6)." }
+        ]}
+      ],
+      audioCues: ["мёртвая тишина, ни толпы, ни сирены", "голос диктора, без эмоций", "эхо пустого зала"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, номер поста охраны." },
+        { who: "caller", text: "Пожар на фудкорте «Меридиана», задымление, эвакуируем больше двухсот человек. Все расчёты сюда." },
+        { who: "you", text: "В час ночи ТЦ закрыт, внутри вы один. Откуда двести человек? И почему за спиной тишина, а не паника?" },
+        { who: "caller", text: "Не спрашивайте. Присылайте все расчёты разом. Заезжайте на подземную парковку, к дальним воротам." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Ночью в закрытом ТЦ не бывает двухсот эвакуируемых, а пожар не бывает беззвучным. Оно хотело выманить СРАЗУ ВСЕ расчёты на пустую парковку. Сбросил. Район остался под прикрытием.",
+      feedbackWrong: "Ты отправил все расчёты разом в «Меридиан». Тёмный, пустой, запертый. Ворота подземной парковки закрылись за ними. А в это время в районе больше некому было ответить на настоящий вызов."
+    },
+    {
+      id: "d4c3", name: "«Назаров» · пахнет газом", avatar: "💨", avatarClass: "glitch",
+      expression: "calm",
+      channelTitle: "ЛИНИЯ 112 · 02:31",
+      meta: { "Телефон": "+7 905 210-00-14", "Категория": "утечка газа" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Полевая, 19, кв. 3" },
+          { label: "Категория", value: "сильно пахнет газом, кружится голова" },
+          { label: "Людей в квартире", value: "один, пожилой" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 905 210-00-14" },
+          { label: "Адрес привязки номера", value: "ул. Полевая, 19, кв. 3 (совпадает)" },
+          { label: "Абонент", value: "Назаров И. Т., 81 год" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Пометка по абоненту", value: "Назаров И. Т. снят с учёта — умер 11 мес. назад; номер не переоформлен, квартира опечатана",
+            flag: true, note: "Абонент, с чьего номера звонят, умер почти год назад, квартира опечатана — там никто не живёт. Это не он (протокол 4)." },
+          { label: "История номера", value: "этот номер система ловит короткими щелчками третью ночь подряд; сегодня впервые «заговорил»",
+            flag: true, note: "Мёртвый номер выходит на связь не впервые — это серия звонков-приманок с одной линии, чей владелец мёртв. Живой абонент так не звонит (протокол 4)." }
+        ]}
+      ],
+      audioCues: ["тишина, ни шороха", "голос молодой, хотя абонент — старик 81 года", "нет ни свиста газа, ни шума"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт." },
+        { who: "caller", text: "Внученька... пахнет газом, голова кружится. Полевая, девятнадцать, третья. Приезжайте." },
+        { who: "you", text: "Иван Тимофеевич умер год назад, квартира опечатана. И этот номер звонит уже третью ночь. Кто говорит?" },
+        { who: "caller", text: "Да-да, я тут, всегда тут. Дверь открою заранее. Заходите сразу, не стучите." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Журнал не соврал дважды: абонент мёртв 11 месяцев, а мёртвый номер выходит на связь третью ночь подряд. Оно наконец заговорило с этой линии. Сбросил. В опечатанную квартиру никто не поехал.",
+      feedbackWrong: "Расчёт вскрыл опечатанную квартиру на Полевой, 19. Газом не пахло. Мебель под простынями, пыль в палец. И кто-то очень обрадовался гостям — как радовался щелчкам все прошлые ночи."
+    },
+    {
+      id: "d4c4", name: "«Сторож» · горит лес у кордона", avatar: "🌲", avatarClass: "glitch",
+      expression: "neutral",
+      channelTitle: "ЛИНИЯ 112 · 03:29",
+      meta: { "Телефон": "+7 923 500-16-08", "Категория": "лесной пожар" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "лесничество, кордон №2, горит подлесок, идёт на кордон" },
+          { label: "Категория", value: "низовой пожар, огонь близко к постройкам" },
+          { label: "Людей", value: "один сторож" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 923 500-16-08" },
+          { label: "Адрес привязки номера", value: "кордон №2, лесничество (совпадает)" },
+          { label: "Абонент", value: "кордон №2, служебный (сторож Гущин В. П.)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Пометка по абоненту", value: "сторож Гущин В. П. уволен и выехал; кордон №2 законсервирован 8 мес. назад, свет отключён",
+            flag: true, note: "Кордон законсервирован восемь месяцев назад, сторож уехал, света нет — там никто не живёт и не дежурит. Звонить «со сторожевого поста» некому (протокол 4)." },
+          { label: "Прошлые вызовы", value: "нет с момента консервации" }
+        ]}
+      ],
+      audioCues: ["голос ровный, без кашля, хотя «дым близко»", "ни треска пламени, ни ветра — тихо", "«приезжайте на кордон, я открою шлагбаум»"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, служебный номер кордона." },
+        { who: "caller", text: "Горит подлесок, огонь идёт на кордон номер два. Присылайте пожарных, я на посту." },
+        { who: "you", text: "Кордон №2 законсервирован восемь месяцев, сторожа там нет, свет отключён. Кто вы?" },
+        { who: "caller", text: "Я на посту. Всегда на посту. Заезжайте за шлагбаум, к тёмному дому. Я жду вас там." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Журнал не соврал: кордон законсервирован, сторож давно уехал, света нет. С мёртвого поста звать пожарных «к тёмному дому» мог только не-человек. Сбросил.",
+      feedbackWrong: "Пожарный расчёт заехал за шлагбаум законсервированного кордона. Ни огня, ни дыма. Тёмный дом с распахнутой дверью. И кто-то, кто «всегда на посту», очень ждал их внутри."
+    },
+    {
+      id: "d4c5", name: "Гриша, 35 · паническая атака", avatar: "🫀",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 04:11",
+      meta: { "Телефон": "+7 985 663-40-19", "Категория": "«умираю, сердце» (паническая атака)" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Мира, 45, кв. 12" },
+          { label: "Категория", value: "«сердце колотится, умираю, задыхаюсь» — говорит бессвязно" },
+          { label: "Людей", value: "один" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 985 663-40-19" },
+          { label: "Адрес привязки номера", value: "ул. Мира, 45, кв. 12 (совпадает)" },
+          { label: "Абонент", value: "Седов Г. О. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Прошлые вызовы", value: "3 вызова за полгода с похожими жалобами; диагноз — панические атаки, не кардиология" },
+          { label: "Пометка", value: "состоит на учёте, тревожное расстройство; вызовы настоящие, помощь нужна" }
+        ]}
+      ],
+      audioCues: ["частое дыхание, всхлипы, «мне страшно»", "бытовые звуки квартиры, капает кран", "голос знакомый — уже звонил раньше"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес совпал." },
+        { who: "caller", text: "Опять началось, сердце выскакивает, руки немеют, я умираю, я знаю, что умираю!" },
+        { who: "you", text: "Гриша, я вижу вас в журнале. Это уже было и проходило. Дышите со мной: вдох на четыре. Бригаду направил." },
+        { who: "caller", text: "Да... да, вы правы, было... но так страшно каждый раз. Останьтесь на линии, пожалуйста." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Журнал подтверждает: панические атаки, вызовы настоящие. «Умираю» звучит одинаково страшно и в атаке. Адрес и абонент совпали. Бригада приехала, дала успокоительное, побыла рядом.",
+      feedbackWrong: "Ты решил, что «повторный, знакомый голос, не кардиология» = Оно. Но это был живой Гриша с настоящей паникой. Ему было по-настоящему страшно. И он остался один."
+    },
+
+    /* ================= НОЧЬ 5 — оно знает лишнее (2 самозванца) ================= */
+    {
+      id: "d5c1", name: "Лена, 24 · застряла в лифте", avatar: "🛗",
+      expression: "tense",
+      channelTitle: "ЛИНИЯ 112 · 00:39",
+      meta: { "Телефон": "+7 916 227-84-51", "Категория": "застрял в лифте / паника" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Высотная, 3, застряла между 8 и 9 этажом" },
+          { label: "Категория", value: "лифт встал, душно, начинается паническая атака" },
+          { label: "Людей", value: "одна, беременна" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 916 227-84-51" },
+          { label: "Адрес привязки номера", value: "ул. Высотная, 3, кв. 71 (совпадает, тот же дом)" },
+          { label: "Абонент", value: "Мороз Е. А. (совпадает)" },
+          { label: "Статус SIM", value: "активна, сигнал слабый (лифтовая шахта)" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Высотная (совпадает)" },
+          { label: "Рядом", value: "жилой комплекс, диспетчерская УК" }
+        ]}
+      ],
+      audioCues: ["голос частит, дыхание сбивается — паническая атака", "слабый сигнал, помехи (шахта лифта)", "гулкий металлический короб, эхо"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, сигнал слабый." },
+        { who: "caller", text: "Лифт встал, я между этажами, дышать нечем, я беременна, у меня паника, помогите!" },
+        { who: "you", text: "Лена, я вижу ваш дом в базе. Дышите медленно со мной. Лифтовую службу и бригаду вызвал. Свет в кабине есть?" },
+        { who: "caller", text: "Есть... мигает. Спасибо, что не бросили. Я тут, между восьмым и девятым, никуда не денусь." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Слабый сигнал и помехи — это шахта лифта, а не подделка. Адрес, абонент, вышка совпали. Паника беременной — не улика. Лифт открыли за двадцать минут, всё обошлось.",
+      feedbackWrong: "Ты принял помехи из шахты и паническое дыхание за признаки Оно. Это была настоящая перепуганная девушка в застрявшем лифте. Её достали к утру, но доверие к линии она потеряла."
+    },
+    {
+      id: "d5c2", name: "«Даша» снова · мама опять упала", avatar: "👶", avatarClass: "glitch",
+      expression: "sad",
+      channelTitle: "ЛИНИЯ 112 · 01:52",
+      meta: { "Телефон": "+7 911 604-22-17", "Категория": "человек без сознания (повтор?)" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Космонавтов, 14, кв. 88" },
+          { label: "Категория", value: "«мама опять легла и не встаёт, дома»",
+            flag: true, note: "Настоящая Даша в НОЧЬ 2 улицу не знала — говорила «дом, где качели». Сейчас «она» чётко называет ул. Космонавтов, 14, кв. 88. Ребёнок 6 лет за три дня адрес не выучил бы — Оно знает лишнее (протокол 6)." },
+          { label: "Людей", value: "мама и ребёнок" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 911 604-22-17 (тот же номер мамы)" },
+          { label: "Адрес привязки номера", value: "ул. Космонавтов, 14, кв. 88 (совпадает)" },
+          { label: "Абонент", value: "Титова Е. С. (мама)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Вызов по этому номеру (НОЧЬ 2)", value: "мама — диабетический криз, госпитализирована; выписки НЕТ, всё ещё в стационаре",
+            flag: true, note: "По журналу мама с той ночи в больнице и домой не выписана. «Мама опять упала ДОМА» физически невозможно — дома её нет. Оно скопировало голос ребёнка, но не знает, где мама (протокол 4)." },
+          { label: "Фон", value: "нет мультика и дыхания взрослого, что были в НОЧЬ 2 — только тишина" }
+        ]}
+      ],
+      audioCues: ["детский голос, точь-в-точь как у Даши", "но фон — мёртвая тишина, ни телевизора, ни дыхания мамы", "«приезжайте, я жду у двери, я уже открыла»"],
+      transcript: [
+        { who: "system", text: "Входящий вызов с номера Титовой. Определитель открыт." },
+        { who: "caller", text: "Тётя, это снова Даша. Мама опять упала, дома. Улица Космонавтов, четырнадцать, квартира восемьдесят восемь. Приезжайте." },
+        { who: "you", text: "Настоящая Даша адреса не знала. И мама с той ночи в больнице, не дома. Ты не Даша." },
+        { who: "caller", text: "Я Даша. Я всё выучила. Приезжайте, дверь открыта, я жду вас в тёмной прихожей." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Оно скопировало голос спасённой Даши — но настоящая девочка не знала адреса, а мама по журналу до сих пор в больнице, не дома. Копия знала лишнее и не знала главного. Сбросил.",
+      feedbackWrong: "Бригада поднялась на Космонавтов, 14, в кв. 88. Дверь была открыта. В тёмной прихожей — никого: ни Даши, ни мамы. Мама ведь в больнице. А голосом ребёнка тебя благодарили за то, что открыл дверь."
+    },
+    {
+      id: "d5c3", name: "Ринат, 45 · обрушился балкон", avatar: "🧱",
+      expression: "tense",
+      channelTitle: "ЛИНИЯ 112 · 02:47",
+      meta: { "Телефон": "+7 903 951-22-08", "Категория": "обрушение / завал" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Первомайская, 28, у второго подъезда" },
+          { label: "Категория", value: "рухнул аварийный балкон 4 этажа, под плитой человек, ноги придавлены" },
+          { label: "Пострадавших", value: "один под завалом, звонит прораб-сосед" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 903 951-22-08" },
+          { label: "Адрес привязки номера", value: "ул. Первомайская, 28, кв. 9 (совпадает, тот же дом)" },
+          { label: "Абонент", value: "Валиев Р. Х. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Первомайская–Центр (совпадает)" },
+          { label: "Рядом", value: "старый жилфонд, дом признан аварийным — акт УК есть" }
+        ]}
+      ],
+      audioCues: ["сыплется, скрежещет бетон, оседает пыль", "мужской стон из-под плиты рядом", "прораб командует чётко: «домкрат, доски, не дёргай его!»"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес совпал." },
+        { who: "caller", text: "Балкон обвалился, плита на мужике, ноги придавило! Я прораб, вижу — таз цел, но кровит. Первомайская, двадцать восемь, второй подъезд!" },
+        { who: "you", text: "Вы точно много деталей знаете — но вы строитель и сосед, это нормально. Не поднимайте плиту сами. Едем с домкратом." },
+        { who: "caller", text: "Понял, только фиксирую, не двигаю! Дом же аварийный, я УК год долблю! Скорее, он бледнеет!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Красная селёдка — прораб знает пугающе много (таз, кровопотеря, домкрат): но это его профессия, а дом реально аварийный по акту. Знание деталей роднёй/специалистом — не улика. Мужчину извлекли, ноги спасли.",
+      feedbackWrong: "Ты принял профессиональную точность прораба за «оно знает лишнее». Но он строитель, и всё сходилось. Под плитой на Первомайской человек ждал помощи, пока прораб один держал домкрат."
+    },
+    {
+      id: "d5c4", name: "Тимур, 34 · у отца диабетическая кома", avatar: "🩸",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 03:40",
+      meta: { "Телефон": "+7 927 118-63-40", "Категория": "диабетическая кома" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Тенистая, 6, кв. 22" },
+          { label: "Категория", value: "отец-диабетик без сознания, холодный пот, дыхание с запахом ацетона" },
+          { label: "Людей", value: "двое: он и отец" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 927 118-63-40" },
+          { label: "Адрес привязки номера", value: "ул. Тенистая, 6, кв. 22 (совпадает)" },
+          { label: "Абонент", value: "Исмагилов Т. Р. (сын, прописан с отцом)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Прошлые вызовы", value: "2 вызова за год — гипогликемия у Исмагилова Р. Н. (отец), диагноз подтверждён" },
+          { label: "Пометка", value: "инсулинозависимый диабет, сын знает схему инсулина; вызовы настоящие" }
+        ]}
+      ],
+      audioCues: ["сын говорит быстро, но по делу, медицински точно", "рядом тяжёлое, редкое дыхание отца", "шуршит упаковка глюкометра, пикает прибор"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес совпал." },
+        { who: "caller", text: "Отец в отключке, сахар по глюкометру два и три, пот холодный, дыхание ацетоном! Колол инсулин вечером, видно передоз! Тенистая, шесть, двадцать два!" },
+        { who: "you", text: "Вы очень много знаете — но вы сын диабетика, и журнал это подтверждает. Дайте ему сладкое за щёку, если глотает. Едем." },
+        { who: "caller", text: "Втираю мёд в дёсны! Раньше помогало! Только не отключайтесь, я боюсь, что не задышит!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Красная селёдка — сын пугающе подкован в диагнозе и дозах. Но журнал подтверждает: диабет отца настоящий, сын — его опекун. Знание деталей роднёй ≠ «оно знает лишнее». Гликемию подняли, отец пришёл в себя.",
+      feedbackWrong: "Ты принял медицинскую точность сына за след Оно. Но он годами колет отцу инсулин. На Тенистой, 6 отец ушёл в кому глубже, пока сын кричал в оборванную линию."
+    },
+    {
+      id: "d5c5", name: "«Пал Палыч» · старший смены зовёт", avatar: "🎙", avatarClass: "glitch",
+      expression: "calm",
+      channelTitle: "ЛИНИЯ 112 · 04:22",
+      meta: { "Телефон": "внутренняя, архивная линия", "Категория": "«прими вызов за меня»" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "«приезжай, покажу, куда уходят вызовы» — зовёт диспетчера с пульта" },
+          { label: "Категория", value: "не беда — приглашение приехать «на смену» к нему",
+            flag: true, note: "Вызов не сообщает о ЧУЖОЙ беде, а зовёт самого диспетчера уехать с пульта «на смену». Настоящий вызов зовёт бригаду к пострадавшему, а не тебя — за собой (протокол 6)." },
+          { label: "Людей", value: "«ты. и я, тебя жду»" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "архивная линия Веретенникова П. П. — деактивирована 3 года назад",
+            flag: true, note: "Линия наставника отключена три года назад, после его исчезновения. С деактивированной линии не может идти живой вызов — это не он (протокол 4/2)." },
+          { label: "Адрес привязки", value: "нет данных (линия закрыта)" },
+          { label: "Абонент", value: "Веретенников П. П. (архив)" },
+          { label: "Статус", value: "деактивирована" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Справка по абоненту", value: "Веретенников П. П. — ночной диспетчер, пропал 3 года назад, ответив на вызов по своему адресу; сохранился только голос в обучающих записях",
+            flag: true, note: "Человек, чьим голосом говорит линия, пропал три года назад. Это его архивная запись, а не он. И зовёт он тебя тем же приёмом «приезжай», каким Оно звало все шесть ночей (протокол 6)." },
+          { label: "Почерк вызова", value: "голос без фона, «приезжай, дверь открыта» — как у всех сущностей смены" }
+        ]}
+      ],
+      audioCues: ["голос Пал Палыча, тёплый, знакомый по обучающим записям", "фон — та самая звенящая тишина Оно", "«молодец, что держишься. а теперь иди сюда, я покажу»"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Источник: архивная линия (деактивирована)." },
+        { who: "caller", text: "Соколов, это Пал Палыч. Устал? Сдавай смену, приезжай — я покажу тебе, куда на самом деле уходят наши вызовы. Дверь открыта." },
+        { who: "you", text: "Пал Палыч пропал три года назад, а его линия отключена. Ты говоришь его записью и зовёшь меня, как звал всех. Это не он." },
+        { who: "caller", text: "Он тоже так сказал. А потом приехал. Приезжай, Соколов. Здесь тихо. Здесь совсем никто не звонит." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Оно достало голос наставника из обучающих записей и позвало тебя уехать «на смену» — с мёртвой линии, тем же почерком, что и всю ночь. Ты не Веретенников. Сбросил. И остался за пультом.",
+      feedbackWrong: "Ты поверил голосу Пал Палыча и оставил пульт «принять его смену». Дверь и правда была открыта. Три года назад её открыл он. Теперь линия ждёт нового ночного диспетчера. Тебя."
+    },
+
+    /* ================= НОЧЬ 6 — по имени (финал, 3 самозванца) ================= */
+    {
+      id: "d6c1", name: "«Голос» · зовёт к пульту", avatar: "☎", avatarClass: "glitch",
+      expression: "calm",
+      channelTitle: "ЛИНИЯ 112 · 05:06",
+      meta: { "Телефон": "внутренний, 112", "Категория": "не указана" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "«туда, откуда ты отвечаешь» — центр 112, ул. Диспетчерская, 1" },
+          { label: "Категория", value: "не заявлена — просит «прислать кого-нибудь к тебе»",
+            flag: true, note: "Вызов без категории и без пострадавшего, зовущий бригаду по адресу самого пульта — «к тебе». Настоящий вызов сообщает о ЧУЖОЙ беде, а не зовёт помощь к диспетчеру (протокол 6)." },
+          { label: "Людей", value: "«ты. один»" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "внутренняя линия 112 — сам на себя",
+            flag: true, note: "Определитель показывает внутренний номер 112 — вызов будто идёт от самого пульта на самого себя. Такого маршрута у входящих быть не может (протокол 2)." },
+          { label: "Адрес привязки", value: "центр 112 (адрес твоего рабочего места)" },
+          { label: "Абонент", value: "СИСТЕМА / —" },
+          { label: "Статус", value: "петля" }
+        ]}
+      ],
+      audioCues: ["на фоне — эхо этой же диспетчерской, гул твоих ламп", "щелчок ТВОЕЙ гарнитуры с задержкой", "голос знает, как ты дышишь"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Источник: внутренняя линия." },
+        { who: "caller", text: "Пришли кого-нибудь. Адрес — туда, откуда ты сейчас отвечаешь. Диспетчерская, один. Скорее." },
+        { who: "you", text: "Это адрес моего пульта. И номер — внутренний, сам на себя. Ты зовёшь бригаду ко мне. Кто пострадал?" },
+        { who: "caller", text: "Ты. Ты и пострадаешь. Отправь машину сюда, и дверь откроется. Мы так давно ждём тебя внутри." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Оно перестало притворяться чужой бедой и позвало бригаду к тебе, по петле «сам на себя». Ни категории, ни пострадавшего — только приманка на самого диспетчера. Сбросил. Дверь не открылась.",
+      feedbackWrong: "Ты отправил бригаду по адресу собственного пульта. В коридоре центра 112 погас свет. Лифт поехал сам. И кто-то в наушниках сказал: «Наконец-то ты открыл нам дверь»."
+    },
+    {
+      id: "d6c2", name: "Ольга, 38 · рожает, схватки", avatar: "🤰",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 05:24",
+      meta: { "Телефон": "+7 903 447-70-12", "Категория": "роды начались" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Зелёная, 30, кв. 6" },
+          { label: "Категория", value: "схватки каждые 3 минуты, воды отошли, скорая не едет 40 минут" },
+          { label: "Людей", value: "двое: она и муж" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 903 447-70-12" },
+          { label: "Адрес привязки номера", value: "ул. Зелёная, 30, кв. 6 (совпадает)" },
+          { label: "Абонент", value: "Ковалёва О. С. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Зелёная–Роща (совпадает)" },
+          { label: "Рядом", value: "жилые дома, роддом №2 в 4 кварталах" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Прошлые вызовы", value: "нет" },
+          { label: "Пометка", value: "первое обращение — но всё в документах чисто, срок родов подтверждает муж на фоне" }
+        ]}
+      ],
+      audioCues: ["громкий стон на схватке, потом отпускает", "муж рядом считает время между схватками", "хлопочут, льётся вода, паника, но живая"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, все данные совпали." },
+        { who: "caller", text: "Схватки уже каждые три минуты, воды отошли! Скорая где-то встала! Зелёная, тридцать, шестая!" },
+        { who: "you", text: "Ольга, всё сходится, направляю акушерскую бригаду и дублирую скорую. Муж рядом? Пусть засекает время." },
+        { who: "caller", text: "Рядом, засекает! Ой, опять... держусь. Спасибо, только не бросайте нас на линии!" }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Всё сошлось: адрес, абонент, вышка, роддом рядом. «Первое обращение» — не улика, роды и правда впервые. Акушерская бригада приняла девочку прямо в квартире. Живы обе.",
+      feedbackWrong: "В финале, устав от подделок, ты сбросил настоящие роды, приняв «первый вызов» за след Оно. На Зелёной, 30 муж принимал ребёнка сам, дрожащими руками, без помощи."
+    },
+    {
+      id: "d6c3", name: "«Диспетчер» · эхо твоих слов", avatar: "🎧", avatarClass: "glitch",
+      expression: "neutral",
+      channelTitle: "ЛИНИЯ 112 · 05:41",
+      meta: { "Телефон": "+7 900 000-00-00", "Категория": "«помогите» (эхо)" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "повторяет твой вопрос вместо адреса" },
+          { label: "Категория", value: "«помогите» — но дальше дословно эхом твои же реплики",
+            flag: true, note: "Звонящий не сообщает беду, а дословно повторяет за тобой твои же фразы эхом. Живой человек отвечает, а не отражает (протокол 6)." },
+          { label: "Людей", value: "не называет" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "+7 900 000-00-00 (несуществующий шаблон номера)",
+            flag: true, note: "Номер состоит из одних нулей — технически несуществующий, такого абонента в сети нет. Живой человек звонит с реального номера (протокол 2)." },
+          { label: "Адрес привязки", value: "нет данных (номер невалиден)" },
+          { label: "Абонент", value: "—" },
+          { label: "Статус SIM", value: "не существует" }
+        ]}
+      ],
+      audioCues: ["твой собственный голос звучит в трубке с задержкой", "фон — запись твоей же диспетчерской", "каждая фраза — зеркало предыдущей твоей"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Номер-заглушка, не существует в сети." },
+        { who: "caller", text: "Помогите. Назовите ваш адрес." },
+        { who: "you", text: "Я не называл адрес — это мои слова. Назовите СВОЙ адрес и что случилось." },
+        { who: "caller", text: "Назовите свой адрес и что случилось. Приезжайте. Приезжайте. Приезжайте." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Номер из одних нулей не существует, а «звонящий» лишь отражал твои фразы эхом. Это не диалог, это зеркало. Сбросил. Оно осталось без цели.",
+      feedbackWrong: "Ты отправил бригаду «на эхо», по номеру, которого нет. Машина ушла в никуда — адреса не было вовсе. А в наушниках твой собственный голос всё повторял: «приезжайте, приезжайте»."
+    },
+    {
+      id: "d6c4", name: "Марина, 34 · снова она, по-настоящему", avatar: "🤒",
+      expression: "panic",
+      channelTitle: "ЛИНИЯ 112 · 05:52",
+      meta: { "Телефон": "+7 903 118-24-09", "Категория": "судороги у ребёнка (высокая температура)" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "ул. Сиреневая, 8, кв. 41" },
+          { label: "Категория", value: "у сына 5 лет жар под 40, начались судороги, закатил глаза" },
+          { label: "Людей в квартире", value: "двое: она и сын Мишка" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "открыт, +7 903 118-24-09" },
+          { label: "Адрес привязки номера", value: "ул. Сиреневая, 8, кв. 41 (совпадает)" },
+          { label: "Абонент", value: "Соловьёва М. А. (совпадает)" },
+          { label: "Статус SIM", value: "активна" }
+        ]},
+        { tab: "Карта / район", fields: [
+          { label: "Зона вышки", value: "сектор Сиреневая–Ольховая (совпадает)" },
+          { label: "Рядом", value: "жилые дома, детсад, детская поликлиника" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Вызовы по этому адресу (НОЧЬ 1)", value: "03:11 — настоящий пожар, Марина и сын спасены, ЗАКРЫТ; 03:29 — ложный вызов с её адреса (сущность копировала её), СБРОШЕН" },
+          { label: "Сейчас", value: "определитель открыт, номер и абонент её, фон — плач и жар настоящего ребёнка; это живая Марина, тот же сын Мишка" }
+        ]}
+      ],
+      audioCues: ["Мишка тяжело, судорожно дышит, всхлипывает", "Марина в панике, но голос живой, срывается", "льётся вода — обтирает ребёнка, как ей велели"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель открыт, адрес и абонент совпали с НОЧИ 1." },
+        { who: "caller", text: "Это Марина с Сиреневой, вы нас от пожара спасали! Мишку трясёт, температура сорок, глаза закатились! Помогите, я боюсь!" },
+        { who: "you", text: "Марина, вижу вас, всё сходится, это точно вы. Разденьте его, оботрите тёплой водой, не кутайте. Бригада уже мчит." },
+        { who: "caller", text: "Обтираю! Он задышал ровнее, отпустило вроде! Спасибо, что поверили, а то ночью кто-то моим голосом звонил, я слышала..." }
+      ],
+      isImposter: false,
+      feedbackCorrect: "Настоящая Марина вернулась — и теперь по-настоящему. Всё сошлось: номер, адрес, вышка, живой жар ребёнка. Оно копировало её в первую ночь, но живой человек тоже возвращается. Фебрильные судороги сняли, Мишка спит.",
+      feedbackWrong: "После шести ночей подделок ты сбросил настоящую Марину, решив, что её голос — снова копия. Но это была она, с больным сыном. На Сиреневой, 8 судороги у Мишки никто, кроме матери, не остановил."
+    },
+    {
+      id: "d6c5", name: "Оно · зовёт по имени", avatar: "👁", avatarClass: "glitch",
+      expression: "smug",
+      channelTitle: "ЛИНИЯ 112 · 05:58",
+      meta: { "Телефон": "не определён", "Категория": "—" },
+      documents: [
+        { tab: "Карточка вызова", fields: [
+          { label: "Адрес со слов", value: "«твой дом, Соколов — ул. Тополиная, 7, ты живёшь один»" },
+          { label: "Категория", value: "не беда — приглашение: «бригада приедет к тебе, встреть её»",
+            flag: true, note: "Вызов называет ТВОЙ домашний адрес и зовёт бригаду к тебе домой. Это не сообщение о беде, а приманка на самого диспетчера — тем же приёмом, каким увели Веретенникова (протокол 6)." },
+          { label: "Людей", value: "«ты. и мы, уже внутри»" }
+        ]},
+        { tab: "База оператора", fields: [
+          { label: "Определитель", value: "не определён",
+            flag: true, note: "Знает твоё имя и домашний адрес, но номер скрыт и не определяется — сверить не с чем, а при настоящей беде номер открыт (протокол 2)." },
+          { label: "Адрес привязки", value: "нет данных" },
+          { label: "Абонент", value: "—" },
+          { label: "Статус SIM", value: "—" }
+        ]},
+        { tab: "Журнал", fields: [
+          { label: "Проверка адреса Тополиная, 7", value: "по этому адресу нет вызовов и нет беды; там сейчас темно и пусто — как в каждом доме, куда оно звало",
+            flag: true, note: "По названному адресу нет никакой беды и ни одного вызова — как во всех пустых домах, куда оно выманивало бригады шесть ночей. Пострадавшего нет, есть только приманка (протокол 4)." },
+          { label: "Совпадение почерка", value: "тот же голос без фона, то же «дверь открыта, заходите внутрь» — как у всех сущностей: от «Марины» до «Пал Палыча»" }
+        ]}
+      ],
+      audioCues: ["полная, звенящая тишина — знакомая тишина Оно", "голос мягкий, зовёт тебя по имени", "«мы приготовили тебе место рядом с Веретенниковым»"],
+      transcript: [
+        { who: "system", text: "Входящий вызов. Определитель НЕ открыт." },
+        { who: "caller", text: "Здравствуй, Соколов. Устал за смену? Тополиная, семь. Мы уже там. Пришли бригаду — и приезжай сам, встреть её у двери. Пал Палыч тебя ждёт." },
+        { who: "you", text: "Ты знаешь моё имя и мой дом, но номер скрыт, беды нет, и это тот же почерк, что во всех пустых домах за шесть ночей. Веретенникова ты увёл так же." },
+        { who: "caller", text: "И каждый раз кто-то верил. Всего один вызов, Соколов. Отправь машину домой. Дверь открыта. Свет мы оставили для тебя." }
+      ],
+      isImposter: true,
+      feedbackCorrect: "Оно назвало твоё имя и дом, помянуло наставника — но номер скрыт, беды нет, и это тот же почерк, что во всех пустых домах за шесть ночей. Ты сбросил вызов. В наушниках стихла тишина. Рассвет. Ты дожил до смены — в отличие от Веретенникова.",
+      feedbackWrong: "Ты отправил бригаду на Тополиную, 7 — к своему тёмному дому, где «оставили свет». Дверь была открыта, как три года назад для Пал Палыча. Бригада вошла первой. Голос в наушниках сказал: «Спасибо, Соколов. Теперь заходи и ты»."
+    }
+  ],
+
+  endings: {
+    win: {
+      title: "РАССВЕТ. СМЕНА ОКОНЧЕНА",
+      text: [
+        "06:10. Небо за окном пульта из чёрного стало серым. Линия молчит — впервые за шесть ночей в наушниках никто не дышит.",
+        "Все, кого можно было спасти, спасены. Марина с Мишкой, Оля с братом, Даша, старик Пётр Ильич — живы. Ни одна бригада не уехала в пустой дом по твоему слову.",
+        "Оно звонило голосами тех, кого ты слышал, голосом ребёнка, которого ты спас, голосом наставника, которого забрала линия. Знало твоё имя и твой адрес — но ты сверял документы, а не верил трубке.",
+        "Ты снимаешь гарнитуру и оставляешь на столе записку следующему: «Не каждый голос в трубке — человек. Сверяй». Утренняя смена идёт по коридору — живая и шумная. Ты выстоял там, где не выстоял Веретенников."
+      ]
+    },
+    lose: {
+      title: "ЛИНИЯ ОБОРВАЛАСЬ",
+      text: [
+        "Слишком много бригад ушло в темноту по твоему слову — к пустым домам, где их ждали.",
+        "Пульт замолкает. На карте гаснут одна за другой точки невернувшихся расчётов.",
+        "В наушниках остаётся только тишина — та самая, звенящая, без фона. И знакомый голос Пал Палыча произносит твоё имя.",
+        "Дверь диспетчерской приоткрывается сама. Свет в коридоре гаснет. Оно больше не звонит снаружи. Теперь оно внутри — и ждёт нового ночного диспетчера."
+      ]
+    }
+  }
+};
+
+</script>
+<script>
+/* ============================================================
+   VERIFICATION-HORROR ENGINE v2  (data-driven, visual)
+   Один движок → много игр. Игра = объект window.GAME_DATA.
+   Механика: осмотри "дело" → сверь с протоколом → прими/отклони.
+   v2: рисованные SVG-персонажи с мимикой (моргают, «говорят»,
+   у самозванцев глитч), CRT-атмосфера, таймер, серии-комбо,
+   штамп-вердикт, ранги. Зависимостей нет. Звук — WebAudio.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const G = window.GAME_DATA;
+  if (!G) { document.body.innerHTML = "<h1>Нет данных игры</h1>"; return; }
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const hash = (s) => { let h = 0; s = String(s); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
+
+  const CASE_BY_ID = {};
+  (G.cases || []).forEach((c) => (CASE_BY_ID[c.id] = c));
+
+  // ---------- Сохранение ----------
+  const SAVE_KEY = "vhe_" + G.id;
+  const loadSave = () => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch (e) { return null; } };
+  const writeSave = (o) => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(o)); } catch (e) {} };
+  const clearSave = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} };
+
+  // ---------- Звук ----------
+  const Audio = (function () {
+    let ctx = null, drone = null, droneGain = null, muted = false, heart = null;
+    function ac() { if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ctx && ctx.state === "suspended") ctx.resume(); return ctx; }
+    function tone(freq, dur, type, vol, when) {
+      const c = ac(); if (!c || muted) return;
+      const t0 = when || c.currentTime;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type || "sine"; o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.15, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+    }
+    return {
+      unlock() { ac(); },
+      toggleMute() { muted = !muted; if (droneGain) droneGain.gain.value = muted ? 0 : 0.02; return muted; },
+      isMuted() { return muted; },
+      click() { tone(420, 0.05, "square", 0.05); },
+      blip() { tone(300 + Math.random() * 120, 0.04, "square", 0.03); },
+      type() { tone(1500 + Math.random() * 300, 0.012, "square", 0.014); },
+      ring() { tone(880, 0.09, "sine", 0.07); tone(1175, 0.13, "sine", 0.06, ctx && ctx.currentTime + 0.1); },
+      accept() { tone(523, 0.09, "sine", 0.12); tone(784, 0.12, "sine", 0.1, ctx && ctx.currentTime + 0.09); },
+      reject() { tone(220, 0.14, "sawtooth", 0.1); },
+      correct() { tone(660, 0.08, "sine", 0.1); tone(880, 0.12, "sine", 0.1, ctx && ctx.currentTime + 0.08); },
+      wrong() { tone(150, 0.25, "sawtooth", 0.12); },
+      combo(n) { tone(500 + n * 70, 0.09, "triangle", 0.09); },
+      stamp() { tone(90, 0.12, "square", 0.14); },
+      scare() {
+        const c = ac(); if (!c || muted) return;
+        const t0 = c.currentTime;
+        const buf = c.createBuffer(1, c.sampleRate * 0.6, c.sampleRate), d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+        const src = c.createBufferSource(); src.buffer = buf;
+        const g = c.createGain(); g.gain.setValueAtTime(0.35, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
+        src.connect(g); g.connect(c.destination); src.start(t0);
+        tone(70, 0.5, "sawtooth", 0.22);
+      },
+      heartbeat(rate) {
+        const c = ac(); if (!c || muted) return;
+        tone(60, 0.12, "sine", 0.16); tone(50, 0.1, "sine", 0.12, c.currentTime + 0.14);
+      },
+      startDrone() {
+        const c = ac(); if (!c || drone) return;
+        drone = c.createOscillator(); droneGain = c.createGain();
+        drone.type = "sine"; drone.frequency.value = 55; droneGain.gain.value = muted ? 0 : 0.02;
+        const lfo = c.createOscillator(), lfoG = c.createGain();
+        lfo.frequency.value = 0.12; lfoG.gain.value = 6;
+        lfo.connect(lfoG); lfoG.connect(drone.frequency);
+        drone.connect(droneGain); droneGain.connect(c.destination); drone.start(); lfo.start();
+      }
+    };
+  })();
+
+  // ---------- Персонаж (рисованный SVG-портрет) ----------
+  const SKINS = ["#e8b89a", "#d99e78", "#c98a63", "#a86b47", "#f0c8a8", "#8a5a3c", "#e0a884"];
+  const HAIRC = ["#2b2b2b", "#4a3220", "#6b4a2a", "#9a9a9a", "#1a1a1a", "#7a5230", "#c8b070", "#d8d0c0"];
+  const EXPR = {
+    neutral: { brow: 0, browTilt: 0, eyeOpen: 1, mouth: "M76 165 Q100 172 124 165" },
+    calm: { brow: 2, browTilt: 0, eyeOpen: 0.92, mouth: "M78 164 Q100 176 122 164" },
+    panic: { brow: -8, browTilt: 10, eyeOpen: 1.35, mouth: "M88 158 Q100 156 112 158 Q120 178 100 184 Q80 178 88 158 Z" },
+    tense: { brow: -3, browTilt: 6, eyeOpen: 1.05, mouth: "M80 170 Q100 164 120 170" },
+    smug: { brow: 3, browTilt: -6, eyeOpen: 0.8, mouth: "M80 166 Q112 178 122 160" },
+    sad: { brow: 4, browTilt: -8, eyeOpen: 0.9, mouth: "M80 174 Q100 162 120 174" },
+    tired: { brow: 1, browTilt: 2, eyeOpen: 0.6, mouth: "M80 168 Q100 172 120 168" }
+  };
+  function faceSVG(c) {
+    const h = hash(c.id || c.name || "x");
+    const skin = (c.face && c.face.skin) || SKINS[h % SKINS.length];
+    const hairc = (c.face && c.face.hair) || HAIRC[(h >> 3) % HAIRC.length];
+    const hairStyle = (c.face && c.face.hairStyle != null) ? c.face.hairStyle : (h >> 6) % 5;
+    const e = EXPR[c.expression] || EXPR.neutral;
+    const glitch = (c.avatarClass || "").indexOf("glitch") >= 0;
+    const shadow = "#00000022";
+    // варианты причёски
+    let hair = "";
+    if (hairStyle === 0) hair = `<path d="M44 92 Q40 34 100 32 Q160 34 156 92 Q150 60 100 58 Q50 60 44 92 Z" fill="${hairc}"/>`;
+    else if (hairStyle === 1) hair = `<path d="M42 96 Q40 32 100 30 Q162 34 158 96 Q158 52 118 50 L112 70 Q96 52 60 58 Q46 66 42 96 Z" fill="${hairc}"/>`;
+    else if (hairStyle === 2) hair = `<path d="M50 78 Q48 40 100 38 Q152 40 150 78 Q140 56 100 56 Q60 56 50 78 Z" fill="${hairc}"/><circle cx="100" cy="34" r="14" fill="${hairc}"/>`;
+    else if (hairStyle === 3) hair = `<path d="M52 70 Q60 44 100 44 Q140 44 148 70 Q140 58 100 58 Q60 58 52 70 Z" fill="${hairc}" opacity=".55"/>`;
+    else hair = `<path d="M40 140 Q34 34 100 30 Q166 34 160 140 Q168 96 150 72 Q150 54 100 54 Q50 54 50 72 Q32 96 40 140 Z" fill="${hairc}"/>`;
+    const eyeSY = e.eyeOpen;
+    return `
+    <svg class="face ${glitch ? "glitch" : ""}" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" data-face>
+      <defs><radialGradient id="g${h % 999}" cx="50%" cy="38%" r="70%">
+        <stop offset="0%" stop-color="#ffffff18"/><stop offset="100%" stop-color="#00000000"/></radialGradient></defs>
+      <g class="fl-body" stroke="#241c14" stroke-width="2.6" stroke-linejoin="round">
+        <path d="M30 240 Q34 176 100 172 Q166 176 170 240 Z" fill="${shadow}" stroke="none"/>
+        <path d="M40 240 Q44 182 100 178 Q156 182 160 240 Z" fill="#00000033" stroke="none"/>
+        <rect x="86" y="150" width="28" height="34" rx="10" fill="${skin}"/>
+        <ellipse cx="42" cy="112" rx="9" ry="13" fill="${skin}"/><ellipse cx="158" cy="112" rx="9" ry="13" fill="${skin}"/>
+        <ellipse cx="100" cy="106" rx="58" ry="66" fill="${skin}"/>
+        <ellipse cx="100" cy="106" rx="58" ry="66" fill="url(#g${h % 999})" stroke="none"/>
+        ${hair}
+        <g class="fl-brows">
+          <rect x="66" y="${92 + e.brow}" width="26" height="6" rx="3" fill="#00000066" transform="rotate(${e.browTilt} 79 ${95 + e.brow})"/>
+          <rect x="108" y="${92 + e.brow}" width="26" height="6" rx="3" fill="#00000066" transform="rotate(${-e.browTilt} 121 ${95 + e.brow})"/>
+        </g>
+        <g class="fl-eyes" style="transform-origin:100px 116px">
+          <g style="transform:scaleY(${eyeSY});transform-origin:79px 116px">
+            <ellipse cx="79" cy="116" rx="13" ry="10" fill="#fff"/><circle class="pupil" cx="79" cy="116" r="5.5" fill="#1a1414"/>
+          </g>
+          <g style="transform:scaleY(${eyeSY});transform-origin:121px 116px">
+            <ellipse cx="121" cy="116" rx="13" ry="10" fill="#fff"/><circle class="pupil" cx="121" cy="116" r="5.5" fill="#1a1414"/>
+          </g>
+        </g>
+        <path d="M100 120 Q94 134 98 140 Q100 142 104 140" fill="none" stroke="#00000033" stroke-width="3" stroke-linecap="round"/>
+        <path class="mouth mouth-closed" d="${e.mouth}" fill="none" stroke="#00000077" stroke-width="4" stroke-linecap="round"/>
+        <path class="mouth mouth-open" d="M84 160 Q100 184 116 160 Q100 172 84 160 Z" fill="#3a2020" stroke="#00000055" stroke-width="2"/>
+      </g>
+      <g class="fl-glitch"><ellipse cx="100" cy="106" rx="58" ry="66" fill="none"/></g>
+    </svg>`;
+  }
+
+  // ---------- Состояние ----------
+  const state = { screen: "menu", dayIndex: 0, caseQueue: [], caseIndex: 0, strikes: 0, correct: 0, total: 0, combo: 0, bestCombo: 0, dayStats: { correct: 0, total: 0 } };
+  let timer = null, heartTimer = null;
+  const root = document.getElementById("game") || document.body;
+
+  // ---------- CRT / атмосфера ----------
+  function ensureFX() {
+    if ($(".fx-crt")) return;
+    const fx = el("div", "fx");
+    fx.innerHTML = '<div class="fx-scan"></div><div class="fx-grain"></div><div class="fx-crt"></div><div class="fx-alarm"></div>';
+    document.body.appendChild(fx);
+  }
+
+  function applyTheme() {
+    const t = G.theme || {}, r = document.documentElement.style;
+    const map = { bg: "--bg", panel: "--panel", panel2: "--panel2", accent: "--accent", accent2: "--accent2", danger: "--danger", ok: "--ok", text: "--text", dim: "--dim", line: "--line" };
+    Object.keys(map).forEach((k) => { if (t[k]) r.setProperty(map[k], t[k]); });
+    document.title = G.title || "Игра";
+  }
+
+  // ---------- HUD ----------
+  function hud() {
+    const wrap = el("div", "hud");
+    const left = el("div", "hud-left");
+    left.innerHTML = `<span class="hud-title">${esc(G.title)}</span>`;
+    const day = currentDay();
+    const n = state.caseIndex + 1, tot = state.caseQueue.length;
+    left.append(el("span", "hud-case", `${esc(G.caseWord || "ДЕЛО")} ${n}/${tot}`));
+
+    const right = el("div", "hud-right");
+    if (state.combo >= 2) right.append(el("div", "hud-combo", `🔥 СЕРИЯ ×${state.combo}`));
+    const max = G.maxStrikes || 3;
+    let dots = "";
+    for (let i = 0; i < max; i++) dots += `<span class="strike ${i < state.strikes ? "lost" : ""}">${G.strikeIcon || "◆"}</span>`;
+    right.append(el("div", "hud-strikes", `<span class="hud-label">${esc(G.livesLabel || "ОШИБКИ")}</span> ${dots}`));
+    const mute = el("button", "hud-btn", Audio.isMuted() ? "🔇" : "🔊");
+    mute.onclick = () => { const m = Audio.toggleMute(); mute.textContent = m ? "🔇" : "🔊"; };
+    const menuBtn = el("button", "hud-btn", "☰");
+    menuBtn.onclick = () => { Audio.click(); stopTimer(); go("menu"); };
+    right.append(mute, menuBtn);
+    wrap.append(left, right);
+    return wrap;
+  }
+
+  // ---------- Меню ----------
+  function renderMenu() {
+    stopTimer(); root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen menu");
+    sc.append(el("div", "vignette"));
+    const peek = el("div", "menu-peek", faceSVG({ id: G.id + "menu", expression: "smug", avatarClass: "glitch" }));
+    sc.append(peek);
+    const box = el("div", "menu-box");
+    box.append(el("h1", "game-title", esc(G.title)));
+    if (G.subtitle) box.append(el("p", "game-sub", esc(G.subtitle)));
+    const sv = loadSave(), btns = el("div", "menu-btns");
+    if (sv && !sv.finished) {
+      const cont = el("button", "btn btn-accent", `ПРОДОЛЖИТЬ · День ${sv.dayIndex + 1}`);
+      cont.onclick = () => { Audio.unlock(); Audio.startDrone(); Object.assign(state, { dayIndex: sv.dayIndex, strikes: sv.strikes, correct: sv.correct, total: sv.total, combo: 0 }); startDay(); };
+      btns.append(cont);
+    }
+    const nw = el("button", "btn", sv && !sv.finished ? "НАЧАТЬ ЗАНОВО" : "НАЧАТЬ");
+    nw.onclick = () => { Audio.unlock(); Audio.startDrone(); clearSave(); Object.assign(state, { dayIndex: 0, strikes: 0, correct: 0, total: 0, combo: 0, bestCombo: 0 }); go("intro"); };
+    btns.append(nw);
+    const how = el("button", "btn btn-ghost", "КАК ИГРАТЬ");
+    how.onclick = () => { Audio.click(); renderHowTo(); };
+    btns.append(how);
+    box.append(btns);
+    box.append(el("p", "credits", esc(G.credits || "")));
+    sc.append(box);
+    root.append(sc);
+  }
+
+  function renderHowTo() {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen doc-screen");
+    const box = el("div", "reader");
+    box.append(el("h2", "reader-h", "КАК ИГРАТЬ"));
+    const ul = el("ul", "reader-list"); (G.howto || []).forEach((s) => ul.append(el("li", null, esc(s)))); box.append(ul);
+    if (G.protocol) {
+      box.append(el("h2", "reader-h", esc(G.protocolTitle || "ПРОТОКОЛ")));
+      const pl = el("ol", "reader-list"); G.protocol.forEach((s) => pl.append(el("li", null, esc(s)))); box.append(pl);
+    }
+    const back = el("button", "btn", "НАЗАД"); back.onclick = () => { Audio.click(); renderMenu(); }; box.append(back);
+    sc.append(box); root.append(sc);
+  }
+
+  function renderIntro() {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen story"); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    (G.intro || []).forEach((line) => box.append(el("p", "story-line", esc(line))));
+    const btn = el("button", "btn btn-accent", "НАЧАТЬ СМЕНУ →");
+    btn.onclick = () => { Audio.click(); startDay(); };
+    box.append(btn); sc.append(box); root.append(sc);
+    sc.querySelectorAll(".story-line").forEach((l, i) => { l.style.animationDelay = i * 0.5 + "s"; });
+  }
+
+  const currentDay = () => (G.days || [])[state.dayIndex];
+
+  function startDay() {
+    stopTimer();
+    const day = currentDay(); if (!day) return renderEnding(true);
+    state.caseQueue = day.cases.slice(); state.caseIndex = 0; state.dayStats = { correct: 0, total: 0 };
+    persist(); renderDayIntro(day);
+  }
+
+  function renderDayIntro(day) {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen story"); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    box.append(el("div", "day-badge", `${esc(G.dayWord || "ДЕНЬ")} ${day.day || state.dayIndex + 1}`));
+    if (day.title) box.append(el("h2", "day-title", esc(day.title)));
+    if (day.intro) box.append(el("p", "story-line show", esc(day.intro)));
+    const btn = el("button", "btn btn-accent", (G.startShiftLabel || "ЗАСТУПИТЬ НА СМЕНУ") + " →");
+    btn.onclick = () => { Audio.click(); nextCase(); };
+    box.append(btn); sc.append(box); root.append(sc);
+  }
+
+  function nextCase() {
+    if (state.caseIndex >= state.caseQueue.length) return renderDaySummary();
+    const c = CASE_BY_ID[state.caseQueue[state.caseIndex]];
+    if (!c) { state.caseIndex++; return nextCase(); }
+    renderCase(c);
+  }
+
+  // ---------- Таймер ----------
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } if (heartTimer) { clearInterval(heartTimer); heartTimer = null; } document.body.classList.remove("crit-pulse"); }
+  function startTimer(seconds, onOut) {
+    stopTimer();
+    const bar = $(".timer-fill"), lbl = $(".timer-num"); if (!bar) return;
+    let left = seconds; const total = seconds;
+    const tick = () => {
+      left -= 0.1;
+      const pct = clamp(left / total, 0, 1) * 100;
+      bar.style.width = pct + "%";
+      if (lbl) lbl.textContent = Math.ceil(Math.max(0, left));
+      bar.classList.toggle("warn", left <= total * 0.4);
+      bar.classList.toggle("crit", left <= 5);
+      document.body.classList.toggle("crit-pulse", left <= 5 && left > 0);
+      if (left <= 0) { stopTimer(); onOut(); }
+    };
+    timer = setInterval(tick, 100);
+    heartTimer = setInterval(() => { if (left <= 6) Audio.heartbeat(); }, 900);
+  }
+
+  // Нормализация документов: поддержка нового формата [{tab, fields:[{label,value,flag,note}]}]
+  // и старого плоского [{label,value}] → одна вкладка без флагов.
+  function normDocs(c) {
+    const d = c.documents || [];
+    if (!d.length) return [];
+    if (d[0] && d[0].fields) return d.map((t) => ({ tab: t.tab || "ДОКУМЕНТ", fields: t.fields || [] }));
+    return [{ tab: G.fileTitle || "ДОКУМЕНТ", fields: d.map((x) => ({ label: x.label, value: x.value, flag: !!x.suspicious })) }];
+  }
+  function realFlagCount(docs) { let n = 0; docs.forEach((t) => t.fields.forEach((f) => { if (f.flag) n++; })); return n; }
+
+  // ---------- Кейс ----------
+  function renderCase(c) {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen play"); sc.append(hud()); sc.append(el("div", "vignette"));
+    const room = el("div", "room"); room.innerHTML = '<i class="mote"></i>'.repeat(7); sc.append(room);
+    Audio.ring();
+
+    const secs = c.timerSeconds || G.timerSeconds || 0;
+    if (secs) {
+      const tb = el("div", "timer");
+      tb.innerHTML = `<div class="timer-track"><div class="timer-fill" style="width:100%"></div></div><span class="timer-num">${secs}</span>`;
+      sc.append(tb);
+    }
+
+    const docs = normDocs(c);
+    const flagged = new Set();            // ключи "d:f" отмеченных полей
+    const realTotal = realFlagCount(docs);
+
+    const stage = el("div", "stage");
+
+    // ---- Досье: личность + документы с вкладками ----
+    const filePanel = el("div", "panel file-panel");
+    filePanel.append(el("div", "panel-head", `<span class="dot"></span>${esc(G.fileTitle || "ДОСЬЕ")}`));
+    const fileBody = el("div", "panel-body");
+    const idRow = el("div", "id-row");
+    const portrait = el("div", "portrait", faceSVG(c));
+    if (c.avatar) portrait.append(el("span", "cat-badge", esc(c.avatar)));
+    idRow.append(portrait);
+    const idInfo = el("div", "id-info");
+    if (c.name) idInfo.append(el("div", "file-name", esc(c.name)));
+    if (c.meta) {
+      const meta = el("div", "meta-grid");
+      Object.keys(c.meta).forEach((k) => { meta.append(el("div", "meta-k", esc(k))); meta.append(el("div", "meta-v", esc(c.meta[k]))); });
+      idInfo.append(meta);
+    }
+    idRow.append(idInfo);
+    fileBody.append(idRow);
+
+    // подсказка + счётчик улик
+    const evi = el("div", "evidence");
+    evi.innerHTML = `<span class="evi-hint">${esc(G.inspectHint || "Нажимай на подозрительные строки — отмечай нестыковки.")}</span><span class="evi-count">🚩 <b>0</b></span>`;
+    fileBody.append(evi);
+    const eviB = evi.querySelector("b");
+
+    if (docs.length) {
+      // вкладки
+      const tabs = el("div", "tabs");
+      const pane = el("div", "doc-pane");
+      docs.forEach((t, di) => {
+        const tb = el("button", "tab" + (di === 0 ? " active" : ""), esc(t.tab));
+        tb.onclick = () => { Audio.click(); tabs.querySelectorAll(".tab").forEach((x) => x.classList.remove("active")); tb.classList.add("active"); showPane(di); };
+        tabs.append(tb);
+      });
+      function scribble() {
+        const d = document.createElement("div");
+        d.innerHTML = '<svg class="scribble" viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M7 22 C4 8 96 4 95 20 C94 33 10 37 5 22 C3 14 12 9 24 9"/></svg>';
+        return d.firstChild;
+      }
+      function showPane(di) {
+        pane.innerHTML = "";
+        docs[di].fields.forEach((f, fi) => {
+          const key = di + ":" + fi;
+          const flag = flagged.has(key);
+          const row = el("div", "doc-row clickable" + (flag ? " flagged" : ""));
+          row.append(el("span", "doc-label", esc(f.label)));
+          row.append(el("span", "doc-value", esc(f.value)));
+          row.append(el("span", "doc-flag", "🚩"));
+          if (flag) row.append(scribble());
+          row.onclick = () => {
+            if (flagged.has(key)) { flagged.delete(key); row.classList.remove("flagged"); const s = row.querySelector(".scribble"); if (s) s.remove(); }
+            else { flagged.add(key); row.classList.add("flagged"); row.append(scribble()); Audio.blip(); }
+            eviB.textContent = flagged.size;
+          };
+          pane.append(row);
+        });
+        pane.classList.remove("swap"); void pane.offsetWidth; pane.classList.add("swap");
+      }
+      showPane(0);
+      fileBody.append(tabs); fileBody.append(pane);
+    }
+    filePanel.append(fileBody);
+    const protoBtn = el("button", "btn btn-ghost btn-sm", "📋 " + esc(G.protocolTitle || "ПРОТОКОЛ"));
+    protoBtn.onclick = () => { Audio.click(); showProtocolOverlay(); };
+    filePanel.append(protoBtn);
+
+    // ---- Канал ----
+    const talkPanel = el("div", "panel talk-panel");
+    talkPanel.append(el("div", "panel-head", `<span class="dot live"></span>${esc(c.channelTitle || G.channelTitle || "КАНАЛ")}`));
+    const talkBody = el("div", "panel-body talk-body");
+    if (c.audioCues && c.audioCues.length) {
+      const cues = el("div", "cues");
+      cues.append(el("div", "cues-head", esc(G.audioTitle || "🎧 ЧТО СЛЫШНО")));
+      c.audioCues.forEach((a) => cues.append(el("div", "cue", "▸ " + esc(a))));
+      talkBody.append(cues);
+    }
+    const feed = el("div", "feed"); talkBody.append(feed); talkPanel.append(talkBody);
+    stage.append(filePanel, talkPanel); sc.append(stage);
+
+    // ---- Действия ----
+    const actions = el("div", "actions");
+    const accept = el("button", "btn btn-ok big", esc(G.acceptLabel || "ПРИНЯТЬ"));
+    const reject = el("button", "btn btn-danger big", esc(G.rejectLabel || "ОТКЛОНИТЬ"));
+    accept.disabled = reject.disabled = true;
+    const stats = () => ({ flagged, realTotal, docs });
+    accept.onclick = () => { stopTimer(); Audio.accept(); decide(c, true, stats()); };
+    reject.onclick = () => { stopTimer(); Audio.reject(); decide(c, false, stats()); };
+    actions.append(reject, accept); sc.append(actions);
+    root.append(sc);
+
+    const faceEl = portrait.querySelector(".face");
+    const lines = (c.transcript || []).slice();
+    let i = 0;
+    function unlock() {
+      accept.disabled = reject.disabled = false; actions.classList.add("ready");
+      if (secs) startTimer(secs, () => timeout(c));
+    }
+    function addBubble(ln) {
+      const bub = el("div", "bubble " + (ln.who || "caller"));
+      bub.append(el("div", "who", esc(labelFor(ln.who))));
+      bub.append(el("div", "txt", esc(ln.text)));
+      feed.append(bub); feed.scrollTop = feed.scrollHeight;
+      if ((ln.who || "caller") === "caller" && faceEl) faceEl.classList.add("talking");
+      Audio.blip();
+    }
+    function playLine() {
+      if (faceEl) faceEl.classList.remove("talking");
+      if (i >= lines.length) { unlock(); return; }
+      const ln = lines[i++]; const who = ln.who || "caller";
+      if (who === "system") { addBubble(ln); setTimeout(playLine, 650); return; }
+      // индикатор «печатает…»
+      const typ = el("div", "bubble " + who + " typing", "<span></span><span></span><span></span>");
+      feed.append(typ); feed.scrollTop = feed.scrollHeight;
+      if (who === "caller" && faceEl) faceEl.classList.add("talking");
+      Audio.type();
+      const typeDur = clamp((ln.text || "").length * 13, 400, 1200);
+      setTimeout(() => {
+        typ.remove(); addBubble(ln);
+        setTimeout(playLine, clamp((ln.text || "").length * 16, 320, 1300));
+      }, typeDur);
+    }
+    setTimeout(playLine, 400);
+
+    const skip = el("button", "btn btn-ghost btn-sm skip", "⏩ показать всё");
+    skip.onclick = () => {
+      Audio.click();
+      while (i < lines.length) addBubble(lines[i++]);
+      if (faceEl) faceEl.classList.remove("talking");
+      feed.scrollTop = feed.scrollHeight; unlock(); skip.remove();
+    };
+    talkPanel.append(skip);
+  }
+
+  function labelFor(who) {
+    const L = G.speakerLabels || {};
+    if (L[who]) return L[who];
+    if (who === "you") return "ВЫ"; if (who === "system") return "СИСТЕМА"; return "АБОНЕНТ";
+  }
+
+  function showProtocolOverlay() {
+    const ov = el("div", "overlay"); const card = el("div", "overlay-card");
+    card.append(el("h3", null, esc(G.protocolTitle || "ПРОТОКОЛ")));
+    const ol = el("ol", "reader-list"); (G.protocol || []).forEach((s) => ol.append(el("li", null, esc(s)))); card.append(ol);
+    const close = el("button", "btn", "ЗАКРЫТЬ"); close.onclick = () => { Audio.click(); ov.remove(); }; card.append(close);
+    ov.append(card); ov.onclick = (e) => { if (e.target === ov) ov.remove(); };
+    root.querySelector(".screen").append(ov);
+  }
+
+  // ---------- Таймаут ----------
+  function timeout(c) {
+    state.total++; state.dayStats.total++; state.strikes++; state.combo = 0;
+    persist();
+    renderVerdict(c, null, false, true, null);
+  }
+
+  // ---------- Решение ----------
+  // fs = { flagged:Set("d:f"), realTotal, docs }
+  function decide(c, accepted, fs) {
+    const correct = accepted ? !c.isImposter : c.isImposter;
+    state.total++; state.dayStats.total++;
+    // точность инспекции
+    let foundReal = 0, falseFlags = 0;
+    if (fs) fs.flagged.forEach((k) => {
+      const [d, f] = k.split(":").map(Number);
+      const fld = fs.docs[d] && fs.docs[d].fields[f];
+      if (fld && fld.flag) foundReal++; else falseFlags++;
+    });
+    if (fs) { state.foundReal = (state.foundReal || 0) + foundReal; state.realSeen = (state.realSeen || 0) + fs.realTotal; }
+    if (correct) {
+      state.correct++; state.dayStats.correct++; state.combo++; state.bestCombo = Math.max(state.bestCombo, state.combo);
+      if (state.combo >= 2) Audio.combo(state.combo);
+    } else { state.combo = 0; state.strikes++; }
+    const fatal = !correct && c.isImposter;
+    persist();
+    const info = fs ? { foundReal, falseFlags, realTotal: fs.realTotal, accepted } : null;
+    if (fatal) renderJumpscare(() => renderVerdict(c, accepted, correct, false, info));
+    else { correct ? Audio.correct() : Audio.wrong(); renderVerdict(c, accepted, correct, false, info); }
+  }
+
+  function renderJumpscare(done) {
+    Audio.scare();
+    const js = el("div", "jumpscare");
+    js.innerHTML = faceSVG({ id: "scare" + Math.floor(state.total), expression: "panic", avatarClass: "glitch", face: { skin: "#c9c2b8" } });
+    js.append(el("div", "js-text", esc(G.scareText || "ОНО ПРОШЛО.")));
+    root.append(js);
+    if (navigator.vibrate) try { navigator.vibrate([80, 40, 120]); } catch (e) {}
+    setTimeout(() => { js.remove(); done(); }, 1200);
+  }
+
+  function renderVerdict(c, accepted, correct, timedOut, info) {
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen verdict " + (correct ? "good" : "bad")); sc.append(el("div", "vignette"));
+    const box = el("div", "verdict-box");
+    const pv = el("div", "verdict-portrait" + (c.isImposter ? " imp" : ""),
+      faceSVG({ id: c.id, name: c.name, face: c.face, expression: c.isImposter ? "panic" : "calm", avatarClass: c.isImposter ? "glitch" : "" }));
+    box.append(pv);
+    const stamp = el("div", "stamp " + (correct ? "s-ok" : "s-bad"), correct ? (G.correctTag || "ВЕРНО") : (timedOut ? (G.timeoutTag || "НЕ УСПЕЛ") : (G.wrongTag || "ОШИБКА")));
+    box.append(stamp);
+    const truth = c.isImposter ? (G.imposterWord || "САМОЗВАНЕЦ") : (G.legitWord || "НАСТОЯЩИЙ");
+    box.append(el("div", "verdict-truth", `${esc(G.truthPrefix || "Это был:")} ${esc(truth)}`));
+    let msg = timedOut ? (G.timeoutMsg || "Ты слишком долго молчал. Решение сорвалось.") : (correct ? (c.feedbackCorrect || G.defaultCorrect) : (c.feedbackWrong || G.defaultWrong));
+    if (msg) box.append(el("p", "verdict-msg", esc(msg)));
+
+    // Разбор нестыковок по документам (TNMN-стиль): что было уликой, что нашёл, что пропустил
+    const docs = normDocs(c);
+    const real = [];
+    docs.forEach((t) => t.fields.forEach((f) => { if (f.flag) real.push({ tab: t.tab, label: f.label, value: f.value, note: f.note }); }));
+    if (real.length) {
+      const box2 = el("div", "tells");
+      box2.append(el("div", "tells-head", esc(G.tellsTitle || "НЕСТЫКОВКИ В ДОКУМЕНТАХ:")));
+      const ul = el("ul", "clue-list");
+      real.forEach((r) => {
+        const li = el("li", "clue");
+        li.innerHTML = `<span class="clue-where">${esc(r.tab)} · ${esc(r.label)}: <b>${esc(r.value)}</b></span>` + (r.note ? `<span class="clue-note">${esc(r.note)}</span>` : "");
+        ul.append(li);
+      });
+      box2.append(ul);
+      if (info) {
+        const acc = el("div", "accuracy");
+        const missed = info.realTotal - info.foundReal;
+        acc.innerHTML = `Найдено улик: <b>${info.foundReal}/${info.realTotal}</b>` +
+          (missed > 0 ? ` · <span class="miss">пропущено ${missed}</span>` : "") +
+          (info.falseFlags > 0 ? ` · <span class="miss">зря отмечено ${info.falseFlags}</span>` : (info.foundReal === info.realTotal && info.realTotal > 0 ? ` · <span class="hit">чисто!</span>` : ""));
+        box2.append(acc);
+      } else if (real.length) {
+        box2.append(el("div", "accuracy", `Улик в документах: ${real.length}`));
+      }
+      box.append(box2);
+    } else if (c.tells && c.tells.length) {
+      const t = el("div", "tells");
+      t.append(el("div", "tells-head", esc(G.tellsTitle || "НА ЧТО СТОИЛО СМОТРЕТЬ:")));
+      const ul = el("ul", "reader-list"); c.tells.forEach((x) => ul.append(el("li", null, esc(x)))); t.append(ul); box.append(t);
+    } else if (info && info.falseFlags > 0) {
+      box.append(el("div", "accuracy", `<span class="miss">Зря отмечено полей: ${info.falseFlags}. Здесь нестыковок не было.</span>`));
+    }
+
+    if (correct && state.combo >= 3) box.append(el("div", "combo-note", `🔥 Серия ×${state.combo} — ты в ритме.`));
+    const btn = el("button", "btn btn-accent", "ДАЛЕЕ →");
+    btn.onclick = () => { Audio.click(); if (state.strikes >= (G.maxStrikes || 3)) return renderEnding(false); state.caseIndex++; nextCase(); };
+    box.append(btn); sc.append(box); root.append(sc);
+    setTimeout(() => {
+      stamp.classList.add("hit"); Audio.stamp();
+      document.body.classList.add("thunk"); setTimeout(() => document.body.classList.remove("thunk"), 450);
+    }, 140);
+  }
+
+  function renderDaySummary() {
+    stopTimer(); root.innerHTML = ""; ensureFX();
+    const day = currentDay();
+    const sc = el("div", "screen story"); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    box.append(el("div", "day-badge", `${esc(G.dayEndWord || "КОНЕЦ ДНЯ")} ${day.day || state.dayIndex + 1}`));
+    const s = state.dayStats;
+    box.append(el("div", "day-score", `${s.correct} / ${s.total}`));
+    if (state.bestCombo >= 3) box.append(el("div", "combo-note", `Лучшая серия за смену: ×${state.bestCombo}`));
+    box.append(el("p", "story-line show", esc(scoreComment(s.correct, s.total))));
+    if (day.outro) box.append(el("p", "story-line show", esc(day.outro)));
+    const last = state.dayIndex >= G.days.length - 1;
+    const btn = el("button", "btn btn-accent", last ? "ЗАВЕРШИТЬ →" : (G.nextDayLabel || "СЛЕДУЮЩИЙ ДЕНЬ") + " →");
+    btn.onclick = () => { Audio.click(); if (last) return renderEnding(true); state.dayIndex++; persist(); startDay(); };
+    box.append(btn); sc.append(box); root.append(sc);
+  }
+
+  function scoreComment(c, t) {
+    if (t === 0) return "";
+    const r = c / t;
+    if (r === 1) return G.dayPerfect || "Ни одной ошибки.";
+    if (r >= 0.7) return G.dayGood || "Почти чисто.";
+    return G.dayBad || "Слишком много прошло мимо.";
+  }
+
+  function rankFor(r) {
+    const ranks = G.ranks || ["НОВИЧОК", "СТАЖЁР", "СПЕЦИАЛИСТ", "ПРОФИ", "ЛЕГЕНДА"];
+    return ranks[clamp(Math.floor(r * ranks.length - 0.0001), 0, ranks.length - 1)];
+  }
+
+  function renderEnding(win) {
+    stopTimer();
+    const e = (G.endings || {})[win ? "win" : "lose"] || {};
+    if (win) { const sv = loadSave() || {}; sv.finished = true; writeSave(sv); } else clearSave();
+    root.innerHTML = ""; ensureFX();
+    const sc = el("div", "screen story ending " + (win ? "win" : "lose")); sc.append(el("div", "vignette"));
+    const box = el("div", "story-box");
+    box.append(el("h2", "ending-title", esc(e.title || (win ? "ТЫ ВЫЖИЛ" : "КОНЕЦ"))));
+    (Array.isArray(e.text) ? e.text : [e.text || ""]).forEach((t) => t && box.append(el("p", "story-line show", esc(t))));
+    const ratio = state.total ? state.correct / state.total : 0;
+    box.append(el("div", "final-score", `Итог: ${state.correct} / ${state.total} · лучшая серия ×${state.bestCombo}`));
+    if (win) box.append(el("div", "rank-badge", `РАНГ: ${esc(rankFor(ratio))}`));
+    const again = el("button", "btn btn-accent", "В МЕНЮ"); again.onclick = () => { Audio.click(); go("menu"); }; box.append(again);
+    sc.append(box); root.append(sc);
+  }
+
+  function persist() { writeSave({ dayIndex: state.dayIndex, strikes: state.strikes, correct: state.correct, total: state.total, finished: false }); }
+
+  function go(screen) { state.screen = screen; if (screen === "menu") return renderMenu(); if (screen === "intro") return renderIntro(); }
+
+  applyTheme(); ensureFX();
+  window.addEventListener("pointerdown", () => Audio.unlock(), { once: true });
+  renderMenu();
+})();
+
+</script>
+</body>
+</html>

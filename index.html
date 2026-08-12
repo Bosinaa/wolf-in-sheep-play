@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171c18">
+<title>Волк в овечьей шкуре — игра про проверку резюме</title>
+<meta name="description" content="Браузерная игра: ты рекрутёр, через тебя идёт поток кандидатов. Сверяй документы, находи накрутку в резюме и не отказывай честным. 41 кандидат, 7 дней, играется в браузере бесплатно.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Волк в овечьей шкуре — игра про проверку резюме">
+<meta property="og:description" content="Ты рекрутёр компании «Отара». Сверяй вкладку против вкладки, обводи красным то, что не сходится. 41 кандидат, 7 дней.">
+<meta property="og:image" content="og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="og.jpg">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root{--felt:#2c3b31;--felt2:#222e26;--paper:#efe5d2;--paper2:#e3d7c0;--ink:#241f1a;
+    --thread:#b8332c;--brass:#c9a24a;--text:#f0e8da;--dim:#a99781;--line:#3d4b3f;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --type:"Courier New",Courier,ui-monospace,monospace;
+    --ui:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;color:var(--text);font-family:var(--ui);-webkit-font-smoothing:antialiased;
+    background:radial-gradient(120% 90% at 20% 0%,rgba(255,232,190,.08),transparent 60%),linear-gradient(160deg,#1b211c,#12160f 70%);
+    padding:0 20px 60px}
+  .grain{position:fixed;inset:-40%;opacity:.05;background-image:var(--grain);pointer-events:none;z-index:5}
+  .wrap{max-width:1000px;margin:0 auto}
+  header{padding:72px 0 34px;text-align:center;position:relative}
+  .kicker{font-family:var(--type);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--brass);margin-bottom:18px}
+  h1{font-family:var(--serif);font-weight:700;text-transform:uppercase;letter-spacing:1px;
+    font-size:clamp(34px,7vw,68px);line-height:.94;margin:0 0 18px;position:relative;display:inline-block}
+  h1 .sh{position:absolute;inset:0;color:var(--thread);transform:translate(4px,4px);opacity:.85;z-index:-1}
+  .lead{color:var(--dim);font-size:clamp(16px,2.2vw,19px);line-height:1.6;max-width:640px;margin:0 auto 30px}
+  .cta{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(#d9b25a,#bb8f36);color:#231a06;
+    text-decoration:none;font-weight:800;letter-spacing:.8px;text-transform:uppercase;font-size:17px;
+    padding:18px 34px;border-radius:3px;box-shadow:0 3px 0 #7d5f16,0 12px 26px rgba(0,0,0,.45);transition:filter .15s,transform .08s}
+  .cta:hover{filter:brightness(1.08)}
+  .cta:active{transform:translateY(2px);box-shadow:0 0 0 #7d5f16}
+  .note{color:#7d7263;font-size:13px;margin-top:14px;font-family:var(--type)}
+  .shot{margin:44px auto 0;max-width:940px;border:1px solid var(--line);border-radius:4px;overflow:hidden;
+    box-shadow:0 30px 70px rgba(0,0,0,.6)}
+  .shot img{display:block;width:100%}
+  h2{font-family:var(--serif);text-transform:uppercase;letter-spacing:2.4px;font-size:15px;color:var(--brass);
+    margin:64px 0 20px;border-bottom:1px solid var(--line);padding-bottom:10px}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .card{background:linear-gradient(178deg,var(--paper),var(--paper2));color:var(--ink);padding:20px 20px 22px;
+    border-radius:2px;font-family:var(--type);box-shadow:0 12px 26px rgba(0,0,0,.4);position:relative}
+  .card b{display:block;font-family:var(--serif);font-size:13px;letter-spacing:1.6px;text-transform:uppercase;
+    color:#6b6053;margin-bottom:8px}
+  .card p{margin:0;font-size:15px;line-height:1.55}
+  .card.red::after{content:"";position:absolute;inset:8px;border:2.4px solid var(--thread);
+    border-radius:14px 10px 15px 9px/9px 15px 10px 14px;opacity:.85;pointer-events:none}
+  .more{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .more a{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;
+    background:linear-gradient(#26312a,#1e261f);border:1px solid var(--line);border-radius:3px;padding:20px}
+  .more a:hover{border-color:var(--thread)}
+  .more .ico{font-size:30px}
+  .more h3{margin:4px 0 0;font-family:var(--serif);font-size:19px;letter-spacing:.4px}
+  .more p{margin:0;color:var(--dim);font-size:14.5px;line-height:1.5}
+  .more .go{color:var(--brass);font-size:13px;letter-spacing:1.4px;text-transform:uppercase;margin-top:6px}
+  footer{color:#6e675c;font-size:13px;text-align:center;margin-top:60px;line-height:1.7;font-family:var(--type)}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="wrap">
+  <header>
+    <div class="kicker">браузерная игра · бесплатно · без установки</div>
+    <h1><span class="sh">Волк в овечьей шкуре</span>Волк в овечьей шкуре</h1>
+    <p class="lead">Ты рекрутёр компании «Отара». Резюме врут красиво: приписанные годы, чужие статьи, компании,
+      которых нет в реестре. Читай вкладку против вкладки и обводи красным то, что не сходится.</p>
+    <a class="cta" href="play/">▶ Играть в браузере</a>
+    <div class="note">41 кандидат · 7 дней · сохранение прогресса · работает на телефоне</div>
+    <div class="shot"><img src="shot.jpg" alt="Экран игры: папка кандидата, запись интервью и подтверждённые нестыковки" loading="lazy" decoding="async"></div>
+  </header>
+
+  <h2>Как играется</h2>
+  <div class="rules">
+    <div class="card red"><b>Красная рамка</b><p>Нажимай на строки документов и реплики интервью, которые
+      противоречат друг другу. Отмеченное обводится красным.</p></div>
+    <div class="card"><b>Сверка пары</b><p>Отметил две строки — они сверяются. Расхождение настоящее? Оно уходит
+      в подтверждённые. Нет? Сгорает одна из четырёх сверок.</p></div>
+    <div class="card"><b>Проверки</b><p>Звонок рекомендателю, ЕГРЮЛ, реестр сертификатов, авторство файлов.
+      Лимит на день общий — трать на тех, в кого сомневаешься.</p></div>
+    <div class="card"><b>Две шкалы провала</b><p>Пропустишь накрутчика — он выйдет на работу. Откажешь честному
+      без основания — жалоба на предвзятость. Любая из шкал доводит до увольнения.</p></div>
+  </div>
+
+  <h2>Ещё две игры про проверку</h2>
+  <div class="more">
+    <a href="dispatcher-112/">
+      <span class="ico">☎️</span>
+      <h3>Диспетчер 112</h3>
+      <p>Ночной пульт службы спасения. Часть звонков о помощи — приманка. Отличи настоящий вызов.</p>
+      <span class="go">Играть →</span>
+    </a>
+    <a href="night-support/">
+      <span class="ico">💬</span>
+      <h3>Служба поддержки в 3 часа ночи</h3>
+      <p>Ночной чат поддержки. Не каждый «клиент» — человек, и кто-то выманивает доступ.</p>
+      <span class="go">Играть →</span>
+    </a>
+  </div>
+
+  <footer>Играется в браузере, ничего не нужно устанавливать. Прогресс хранится на вашем устройстве.<br>
+    Сделано на своём движке, без сторонних библиотек.</footer>
+</div>
+</body>
+</html>
