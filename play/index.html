@@ -4,17 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#171c18">
+<link rel="canonical" href="https://bosinaa.github.io/wolf-in-sheep-play/play/">
+<meta property="og:url" content="https://bosinaa.github.io/wolf-in-sheep-play/play/">
+<meta property="og:site_name" content="Волк в овечьей шкуре">
+<meta property="og:locale" content="ru_RU">
 <meta name="description" content="Ты — рекрутёр компании «Отара». Резюме врут красиво. Поймать вранье можно только одним способом: положить два документа рядом и обвести то, что не сходится.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ВОЛК В ОВЕЧЬЕЙ ШКУРЕ">
 <meta property="og:description" content="Ты — рекрутёр компании «Отара». Резюме врут красиво. Поймать вранье можно только одним способом: положить два документа рядом и обвести то, что не сходится.">
-<meta property="og:image" content="og.jpg">
+<meta property="og:image" content="https://bosinaa.github.io/wolf-in-sheep-play/play/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ВОЛК В ОВЕЧЬЕЙ ШКУРЕ">
 <meta name="twitter:description" content="Ты — рекрутёр компании «Отара». Резюме врут красиво. Поймать вранье можно только одним способом: положить два документа рядом и обвести то, что не сходится.">
-<meta name="twitter:image" content="og.jpg">
+<meta name="twitter:image" content="https://bosinaa.github.io/wolf-in-sheep-play/play/og.jpg">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
@@ -30,24 +37,28 @@
    «улик», «подозреваемых» и «доказательств».
    ================================================================ */
 :root{
-  --bg:#171c18;
-  --felt:#2c3b31;            /* сукно доски */
-  --felt2:#222e26;
-  --paper:#efe5d2;           /* бумага документа */
-  --paper2:#e3d7c0;
-  --paper-edge:#cdbfa4;
-  --ink:#241f1a;             /* машинописная краска */
-  --ink-dim:#6c6154;
-  --thread:#b8332c;          /* шерстяная нить */
-  --brass:#c9a24a;           /* булавки, акценты */
-  --accent:#c9a24a;
+  /* «Волчья» палитра: угольный кабинет, тёплая бумага, кровяной акцент.
+     Раньше фон был травяно-зелёным — теперь графит с зелёным подтоном,
+     красного меньше по площади, но он резче. */
+  --bg:#12100f;
+  --felt:#26302a;            /* сукно стола */
+  --felt2:#181e1a;
+  --paper:#f0e6d3;           /* бумага документа */
+  --paper2:#e0d3b9;
+  --paper-edge:#c6b699;
+  --ink:#1b1815;             /* машинописная краска */
+  --ink-dim:#5f564a;
+  --thread:#c11f1a;          /* красный карандаш: резче и злее */
+  --blood:#7d120f;
+  --brass:#d4a24a;           /* латунь */
+  --accent:#d4a24a;
   --accent2:#3f6f8f;
   --ok:#4a8055;
-  --danger:#a8342e;
-  --text:#f0e8da;
-  --dim:#a99781;
-  --line:#3d4b3f;
-  --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+  --danger:#a8241f;
+  --text:#f3ece0;
+  --dim:#a2917c;
+  --line:#3a4038;
+  --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
   --type:"Courier New",Courier,ui-monospace,monospace;
   --ui:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
   --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -56,8 +67,9 @@
 html,body{margin:0;height:100%;overflow:hidden;overflow-x:hidden;max-width:100%;color:var(--text);font-family:var(--ui);
   -webkit-font-smoothing:antialiased;
   background:
-    radial-gradient(120% 90% at 20% 0%,rgba(255,232,190,.10),transparent 60%),
-    linear-gradient(160deg,#1b211c,#12160f 70%)}
+    radial-gradient(90% 60% at 50% -8%,rgba(212,162,74,.13),transparent 62%),
+    radial-gradient(70% 50% at 50% 108%,rgba(193,31,26,.10),transparent 60%),
+    linear-gradient(168deg,#181c18,#0d0f0c 74%)}
 #game{height:100%}
 button{font-family:inherit;cursor:pointer}
 ::selection{background:var(--brass);color:#1a1509}
@@ -86,23 +98,27 @@ body.thunk #game{animation:thunk .42s}
 @keyframes scin{from{opacity:0;transform:scale(.995)}to{opacity:1;transform:none}}
 
 /* ---------- кнопки ---------- */
-.btn{background:linear-gradient(#3a4a3d,#2c3931);color:var(--text);border:1px solid #4c5e4f;
-  padding:13px 22px;border-radius:3px;font-size:15.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
-  box-shadow:0 2px 0 #1b241d,0 6px 14px rgba(0,0,0,.35);transition:transform .08s,filter .15s;min-width:170px}
+.btn{background:linear-gradient(#2f3a31,#212821);color:var(--text);border:1px solid #46523f;
+  padding:13px 22px;border-radius:2px;font-size:15.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  box-shadow:0 2px 0 #10140f,0 8px 18px rgba(0,0,0,.5);transition:transform .08s,filter .15s,box-shadow .15s;min-width:170px}
+.btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .btn:hover:not(:disabled){filter:brightness(1.14)}
 .btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 #1b241d}
 .btn:disabled{opacity:.34;cursor:not-allowed}
 .btn-accent{background:linear-gradient(#d9b25a,#bb8f36);color:#231a06;border-color:#8d6a1f}
-.btn-ok{background:linear-gradient(#5b9a67,#41754c);color:#08170c;border-color:#2f5738}
-.btn-danger{background:linear-gradient(#bf4038,#8e2a24);color:#fff;border-color:#6d1e19}
+.btn-ok{background:linear-gradient(#54925f,#41754c);color:#06140a;border-color:#2b4f33;text-shadow:0 1px 0 rgba(255,255,255,.18)}
+.btn-danger{background:linear-gradient(#c1231d,#7d120f);color:#fff;border-color:#5d0d0b;
+  text-shadow:0 1px 0 rgba(0,0,0,.45)}
 .btn-ghost{background:rgba(255,255,255,.04);border-color:#4c5e4f;color:var(--dim);box-shadow:none;font-weight:600}
 .btn-ghost:hover{color:var(--text)}
 .btn-sm{padding:8px 13px;font-size:12.5px;min-width:0;letter-spacing:.4px}
-.big{font-size:17.5px;padding:17px 24px;flex:1}
+.big{font-size:17.5px;padding:17px 24px;flex:1;letter-spacing:1.6px}
+.actions .btn-danger{clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%)}
+.actions .btn-ok{clip-path:polygon(14px 0,100% 0,100% 100%,0 100%)}
 
 /* ================= МЕНЮ ================= */
 .menu{justify-content:center}
-.menu-board{position:absolute;inset:0;z-index:0;opacity:.8;
+.menu-board{position:absolute;inset:0;z-index:0;opacity:.72;
   background:
     radial-gradient(circle at 30% 20%,rgba(255,235,190,.10),transparent 55%),
     var(--grain),linear-gradient(150deg,var(--felt),var(--felt2));
@@ -119,12 +135,26 @@ body.thunk #game{animation:thunk .42s}
 .title-stack{position:relative;display:inline-block;margin-bottom:6px}
 .title-stack span{display:block;font-family:var(--serif);font-weight:700;text-transform:uppercase;
   font-size:clamp(34px,7.6vw,74px);line-height:.9;letter-spacing:1px}
-.t-shadow{position:absolute;inset:0;color:var(--thread);transform:translate(4px,4px);opacity:.85;filter:blur(.4px)}
-.t-main{position:relative;color:#f5ecda;text-shadow:0 2px 0 #000,0 0 34px rgba(0,0,0,.7)}
+.t-shadow{position:absolute;inset:0;color:var(--thread);transform:translate(5px,6px);opacity:.95}
+.t-main{position:relative;color:#f7efe0;text-shadow:0 2px 0 #000,0 0 46px rgba(0,0,0,.85)}
 .game-sub{color:var(--dim);font-size:18px;line-height:1.55;margin:14px auto 30px;max-width:520px}
 .menu-btns{display:flex;flex-direction:column;gap:10px;align-items:center}
 .menu-btns .btn{width:290px}
 .credits{color:#7d7263;font-size:12.5px;letter-spacing:1.4px;margin-top:26px;text-transform:uppercase}
+
+/* волчьи глаза в темноте — за содержимым меню */
+/* глаза светятся из темноты: под ними отдельное затемнение, иначе на сукне
+   свечение теряется и читается как декоративная наклейка */
+.wolf-eyes{position:absolute;left:50%;bottom:1%;width:min(78vw,720px);transform:translateX(-50%);
+  z-index:1;opacity:.92;pointer-events:none;
+  filter:drop-shadow(0 0 22px rgba(214,150,40,.45)) drop-shadow(0 0 60px rgba(0,0,0,.8))}
+.wolf-eyes::before{content:"";position:absolute;left:50%;top:50%;width:150%;height:230%;
+  transform:translate(-50%,-50%);z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,rgba(6,8,6,.92) 30%,rgba(6,8,6,.55) 55%,transparent 76%)}
+.wolf-eyes svg{width:100%;display:block}
+.wolf-eyes .eye{animation:blinkEye 8.5s infinite}
+@keyframes blinkEye{0%,93%,100%{transform:scaleY(1)}95.5%{transform:scaleY(.06)}}
+.menu .menu-box{position:relative;z-index:2}
 
 /* ================= читалка / история ================= */
 .doc-screen,.story{overflow:auto;padding:26px 16px}
@@ -161,8 +191,8 @@ body.thunk #game{animation:thunk .42s}
 /* ================= HUD ================= */
 .play{justify-content:flex-start;gap:10px;padding:10px 12px 12px}
 .hud{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-  padding:7px 12px;background:linear-gradient(#2a352c,#1f281f);border:1px solid var(--line);border-radius:3px;
-  box-shadow:0 4px 12px rgba(0,0,0,.4)}
+  padding:7px 12px;background:linear-gradient(#232a24,#171b17);border:1px solid var(--line);border-radius:2px;
+  border-bottom:2px solid rgba(212,162,74,.35);box-shadow:0 6px 16px rgba(0,0,0,.5)}
 .hud-left,.hud-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hud-title{font-family:var(--serif);letter-spacing:2.4px;font-size:15px;text-transform:uppercase;color:#f0e6d4}
 .hud-chip{font-family:var(--type);font-size:13px;color:var(--dim);border:1px solid var(--line);padding:3px 8px;letter-spacing:1px}
@@ -350,7 +380,8 @@ body.thunk #game{animation:thunk .42s}
    Доски с булавками и нитью больше нет: игрок обводит красным
    строки прямо в документах и репликах, движок сверяет пару. */
 .markbar{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;
-  padding:8px 12px;background:linear-gradient(#2a352c,#1f281f);border:1px solid var(--line);border-radius:3px}
+  padding:8px 12px;background:linear-gradient(#202721,#161b16);border:1px solid var(--line);border-radius:2px;
+  border-left:3px solid var(--thread)}
 .mb-hint{font-family:var(--type);font-size:13.5px;line-height:1.45;color:#a9bda6}
 .mb-right{display:flex;align-items:center;gap:12px;white-space:nowrap}
 .mb-count{font-family:var(--type);font-size:12.5px;color:var(--dim);letter-spacing:.6px}
@@ -364,8 +395,8 @@ body.thunk #game{animation:thunk .42s}
 .doc-row.markable:hover{background:rgba(201,162,74,.14)}
 .doc-row.marked,.bubble.marked,.probe-result.marked{position:relative;background:rgba(184,51,44,.09)}
 .marked::after{content:"";position:absolute;inset:-3px -5px;pointer-events:none;
-  border:2.4px solid var(--thread);border-radius:12px 9px 13px 8px/8px 13px 9px 12px;
-  box-shadow:0 1px 0 rgba(184,51,44,.25);animation:frameIn .18s ease-out}
+  border:2.8px solid var(--thread);border-radius:12px 9px 13px 8px/8px 13px 9px 12px;
+  box-shadow:0 0 0 1px rgba(193,31,26,.18),0 0 14px rgba(193,31,26,.25);animation:frameIn .18s ease-out}
 @keyframes frameIn{from{transform:scale(1.04);opacity:0}to{transform:none;opacity:1}}
 .confirmed{position:relative;background:rgba(184,51,44,.07)}
 .confirmed::after{content:"";position:absolute;inset:-3px -5px;pointer-events:none;
@@ -386,7 +417,8 @@ body.thunk #game{animation:thunk .42s}
   color:var(--thread);border:1px dashed var(--thread);padding:3px 7px;border-radius:2px;align-self:flex-start}
 
 /* найденное */
-.findings{background:linear-gradient(#26312a,#1e261f);border:1px solid var(--line);border-radius:3px;
+
+.findings{background:linear-gradient(#202721,#161b16);border:1px solid var(--line);border-radius:3px;
   padding:10px 12px;max-height:34%;overflow:auto;flex:0 0 auto}
 .fd-head{font-family:var(--serif);font-size:12px;letter-spacing:2.2px;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
 .fd-empty{font-family:var(--type);font-size:13.5px;color:#7d8b7c;font-style:italic}
@@ -3364,7 +3396,10 @@ window.GAME_DATA.cases.push(
     const o = opts || {};
     const src = FACES[c.id];
     if (!src) return Portrait.svg(c, o);
-    return `<img class="shot${o.glitch ? " glitch" : ""}" src="${src}" alt="" draggable="false" loading="lazy" decoding="async">`;
+    // если картинка не доедет (сеть, блокировщик, кэш), подставляем рисованное лицо
+    const fb = Portrait.svg(c, o).replace(/"/g, "&quot;");
+    return `<img class="shot${o.glitch ? " glitch" : ""}" src="${src}" alt="" draggable="false" loading="lazy" decoding="async"` +
+      ` onerror="this.outerHTML=this.dataset.fb" data-fb="${fb}">`;
   }
 
   /* ---------------- Состояние ---------------- */
@@ -3438,6 +3473,30 @@ window.GAME_DATA.cases.push(
       { t: "ТЕХКАРТА КОМПАНИИ", v: "контейнеров до 2017 не было", r: 2, x: 71, y: 11 },
       { t: "ИНТЕРВЬЮ", v: "«я стоял у истоков»", r: -2, x: 7, y: 70 }
     ];
+    // глаза из темноты: главный образ игры, и он же держит атмосферу меню
+    const eyes = el("div", "wolf-eyes");
+    eyes.innerHTML = `<svg viewBox="0 0 520 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffd979" stop-opacity=".95"/>
+          <stop offset="52%" stop-color="#e09422" stop-opacity=".42"/>
+          <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="140" cy="95" rx="130" ry="80" fill="url(#glow)"/>
+      <ellipse cx="380" cy="95" rx="130" ry="80" fill="url(#glow)"/>
+      <g class="eye">
+        <path d="M60 96 Q140 34 220 96 Q140 132 60 96 Z" fill="#ffd464"/>
+        <ellipse cx="140" cy="94" rx="13" ry="30" fill="#1a1206"/>
+        <circle cx="147" cy="80" r="5" fill="#fff" opacity=".55"/>
+      </g>
+      <g class="eye">
+        <path d="M300 96 Q380 34 460 96 Q380 132 300 96 Z" fill="#ffd464"/>
+        <ellipse cx="380" cy="94" rx="13" ry="30" fill="#1a1206"/>
+        <circle cx="387" cy="80" r="5" fill="#fff" opacity=".55"/>
+      </g>
+    </svg>`;
+    sc.append(eyes);
     board.innerHTML = demo.map((d) =>
       `<div class="mb-card" style="--r:${d.r}deg;left:${d.x}%;top:${d.y}%">
          <span class="mb-t">${d.t}</span><span class="mb-v">${esc(d.v)}</span></div>`).join("");
@@ -3455,7 +3514,7 @@ window.GAME_DATA.cases.push(
       };
       btns.append(cont);
     }
-    const nw = el("button", "btn", sv && !sv.finished ? "НАЧАТЬ ЗАНОВО" : "НАЧАТЬ");
+    const nw = el("button", sv && !sv.finished ? "btn" : "btn btn-accent", sv && !sv.finished ? "НАЧАТЬ ЗАНОВО" : "НАЧАТЬ");
     nw.onclick = () => {
       Snd.unlock(); Snd.startRoom(); clearSave();
       Object.assign(state, { dayIndex: 0, wolves: 0, unfair: 0, correct: 0, total: 0, combo: 0, bestCombo: 0, proved: 0, provable: 0, wasted: 0, grades: [] });
