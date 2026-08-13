@@ -1512,6 +1512,152 @@ window.GAME_DATA = {
 
 </script>
 <script>
+window.GAME_I18N = {};
+/* ============================================================
+   I18N для движков v3/v4.
+
+   Работает ДО инициализации движка: движок читает window.GAME_DATA
+   один раз в замыкание, поэтому переводить надо здесь, на месте,
+   пока никто не успел взять ссылку. Переключение языка = запись в
+   localStorage + перезагрузка (движок не рассчитан на смену языка
+   на лету, а перерисовка половины экранов стоила бы дороже).
+
+   Карта переводов (window.GAME_I18N) — плоская: «ключ → строка»,
+   ключи те же, что печатает pipeline/i18n-extract.js. Ключа нет —
+   остаётся русский оригинал, поэтому неполный перевод не ломает
+   игру, а только оставляет непереведённые куски.
+   ============================================================ */
+(function () {
+  "use strict";
+  const G = window.GAME_DATA;
+  const MAPS = window.GAME_I18N || {};
+  if (!G) return;
+
+  const LANGS = ["ru"].concat(Object.keys(MAPS));
+  const KEY = "vhe_lang_" + (G.id || "game");
+
+  function pick() {
+    const q = new URLSearchParams(location.search).get("lang");
+    if (q && LANGS.indexOf(q) >= 0) return q;
+    try { const s = localStorage.getItem(KEY); if (s && LANGS.indexOf(s) >= 0) return s; } catch (e) {}
+    // язык браузера — только как первая догадка, дальше решает выбор игрока
+    const nav = (navigator.language || "ru").slice(0, 2).toLowerCase();
+    return LANGS.indexOf(nav) >= 0 ? nav : "ru";
+  }
+
+  const lang = pick();
+  window.GAME_LANG = lang;
+  document.documentElement.lang = lang;
+
+  /* --- применение карты к данным --- */
+  if (lang !== "ru" && MAPS[lang]) {
+    const M = MAPS[lang];
+    // ключи строит pipeline/i18n-extract.js; обход ниже повторяет его порядок
+    // один в один, поэтому ключи сходятся без всякого сопоставления по тексту
+    const T = (key, val) => (typeof val === "string" && M[key] != null ? M[key] : val);
+    const list = (arr, prefix) => Array.isArray(arr) ? arr.map((v, i) => T(prefix + "." + i, v)) : arr;
+
+    ["title", "subtitle", "acceptLabel", "rejectLabel", "legitWord", "imposterWord",
+     "correctTag", "wrongTag", "truthPrefix", "channelTitle", "audioTitle", "tellsTitle",
+     "scareText", "protocolTitle", "defaultCorrect", "defaultWrong",
+     "dayPerfect", "dayGood", "dayBad"].forEach((k) => { G[k] = T("cfg." + k, G[k]); });
+
+    Object.keys(G.speakerLabels || {}).forEach((k) => { G.speakerLabels[k] = T("speaker." + k, G.speakerLabels[k]); });
+    Object.keys(G.labels || {}).forEach((k) => { G.labels[k] = T("labels." + k, G.labels[k]); });
+    Object.keys(G.meters || {}).forEach((k) => { G.meters[k].label = T("meter." + k + ".label", G.meters[k].label); });
+    G.ranks = list(G.ranks, "rank");
+    G.intro = list(G.intro, "intro");
+    G.howto = list(G.howto, "howto");
+    G.protocol = list(G.protocol, "protocol");
+    (G.menuNotes || []).forEach((n, i) => { n.t = T("menuNote." + i + ".t", n.t); n.v = T("menuNote." + i + ".v", n.v); });
+
+    (G.days || []).forEach((d) => {
+      const p = "day." + d.day + ".";
+      d.title = T(p + "title", d.title);
+      d.intro = T(p + "intro", d.intro);
+      d.outro = T(p + "outro", d.outro);
+    });
+
+    Object.keys(G.endings || {}).forEach((k) => {
+      const e = G.endings[k], p = "ending." + k + ".";
+      e.title = T(p + "title", e.title);
+      if (Array.isArray(e.text)) e.text = e.text.map((v, i) => T(p + "text." + i, v));
+      else e.text = T(p + "text.0", e.text);
+    });
+
+    (G.cases || []).forEach((c) => {
+      const p = "case." + c.id + ".";
+      c.name = T(p + "name", c.name);
+      c.role = T(p + "role", c.role);
+      c.channelTitle = T(p + "channelTitle", c.channelTitle);
+      if (c.verdictTruth) c.verdictTruth = T(p + "verdictTruth", c.verdictTruth);
+      if (c.truth) c.truth = T(p + "truth", c.truth);
+      if (c.feedbackCorrect) c.feedbackCorrect = T(p + "feedbackCorrect", c.feedbackCorrect);
+      if (c.feedbackWrong) c.feedbackWrong = T(p + "feedbackWrong", c.feedbackWrong);
+
+      if (c.meta) {
+        const m = {};
+        Object.keys(c.meta).forEach((k) => { m[T(p + "metaKey." + k, k)] = T(p + "metaVal." + k, c.meta[k]); });
+        c.meta = m;
+      }
+      (c.documents || []).forEach((doc) => {
+        const dp = p + "doc." + doc.tab + ".";
+        (doc.fields || []).forEach((f) => {
+          f.label = T(dp + "f." + f.id + ".label", f.label);
+          f.value = T(dp + "f." + f.id + ".value", f.value);
+          if (f.note) f.note = T(dp + "f." + f.id + ".note", f.note);
+        });
+        if (doc.note) doc.note = T(dp + "note", doc.note);
+        doc.tab = T(dp + "tab", doc.tab);
+      });
+      (c.probes || []).forEach((pr) => {
+        pr.label = T(p + "probe." + pr.id + ".label", pr.label);
+        pr.result = T(p + "probe." + pr.id + ".result", pr.result);
+        if (pr.evidence) pr.evidence = T(p + "probe." + pr.id + ".evidence", pr.evidence);
+      });
+      (c.transcript || []).forEach((t, i) => { t.text = T(p + "tr." + (t.id || i) + ".text", t.text); });
+      (c.questions || []).forEach((q) => {
+        q.q = T(p + "ask." + q.id + ".q", q.q);
+        q.a = T(p + "ask." + q.id + ".a", q.a);
+        q.tag = T(p + "ask." + q.id + ".tag", q.tag);
+      });
+      c.audioCues = list(c.audioCues, p + "cue");
+      c.herrings = list(c.herrings, p + "herring");
+      (c.contradictions || []).forEach((x) => {
+        if (x.why) x.why = T(p + "contra." + x.a + "|" + x.b + ".why", x.why);
+        if (x.note) x.note = T(p + "contra." + x.a + "|" + x.b + ".note", x.note);
+      });
+    });
+  }
+
+  /* --- переключатель языка --- */
+  const NAMES = { ru: "RU", en: "EN" };
+  function mount() {
+    if (LANGS.length < 2 || document.querySelector(".lang-switch")) return;
+    const box = document.createElement("div");
+    box.className = "lang-switch";
+    LANGS.forEach((code) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "lang-btn" + (code === lang ? " on" : "");
+      b.textContent = NAMES[code] || code.toUpperCase();
+      b.onclick = () => {
+        if (code === lang) return;
+        try { localStorage.setItem(KEY, code); } catch (e) {}
+        const u = new URL(location.href);
+        u.searchParams.delete("lang");
+        location.replace(u.toString());
+      };
+      box.appendChild(b);
+    });
+    document.body.appendChild(box);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
+  else mount();
+})();
+
+</script>
+<script>
 /* ============================================================
    VERIFICATION-HORROR ENGINE v2  (data-driven, visual)
    Один движок → много игр. Игра = объект window.GAME_DATA.
